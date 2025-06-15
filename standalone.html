@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタンドアロン版</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #map { border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>日本地図セレクター（スタンドアロン版）</h1>
+  <div id="map"></div>
+  <div id="info">準備中...</div>
+  
+  <script>
+    // JapanMapSelectorクラスを直接定義
+    class JapanMapSelector {
+      constructor(props = {}) {
+        this.prefectures = [];
+        this.municipalities = [];
+        this.props = {
+          width: 800,
+          height: 600,
+          ...props
+        };
+        console.log('JapanMapSelector initialized');
+      }
+      
+      async initialize(prefUrl, muniUrl) {
+        console.log('Loading data...');
+        try {
+          const prefResponse = await fetch(prefUrl);
+          const prefData = await prefResponse.json();
+          console.log('Prefecture data loaded:', prefData.features.length);
+          
+          const muniResponse = await fetch(muniUrl);
+          const muniData = await muniResponse.json();
+          console.log('Municipality data loaded:', muniData.features.length);
+          
+          return true;
+        } catch (error) {
+          console.error('Data loading error:', error);
+          throw error;
+        }
+      }
+    }
+    
+    // テスト実行
+    const selector = new JapanMapSelector();
+    selector.initialize(
+      './src/data/prefectures.geojson',
+      './src/data/municipalities.geojson'
+    ).then(() => {
+      document.getElementById('info').textContent = 'データ読み込み完了！';
+    }).catch(error => {
+      document.getElementById('info').textContent = 'エラー: ' + error.message;
+    });
+  </script>
+</body>
+</html>

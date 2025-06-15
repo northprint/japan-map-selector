@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日本地図セレクター デモ</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    #map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+    }
+    #selection-info {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      min-height: 40px;
+    }
+    .back-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+    }
+    .prefecture-path, .municipality-path {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+    .prefecture-path:hover {
+      fill: #b0d0f0 !important;
+    }
+    .municipality-path:hover {
+      fill: #b0d0f0 !important;
+    }
+    .map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      cursor: grab;
+    }
+    .map-svg:active {
+      cursor: grabbing;
+    }
+    .hover-info {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .zoom-button {
+      display: block;
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      padding: 0;
+    }
+    .zoom-button:hover {
+      background: #f0f0f0;
+    }
+    .zoom-button:first-child {
+      border-bottom: 1px solid #ccc;
+    }
+    .zoom-button:active {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <h1>日本地図セレクター デモ</h1>
+  
+  <div id="map-container">
+    <div style="position: relative;">
+      <button id="back-button" class="back-button" style="display: none;">
+        ← 全国に戻る
+      </button>
+      <button id="toggle-islands-button" class="back-button" style="display: none; left: 140px;">
+        離島を表示
+      </button>
+      <svg id="map-svg" class="map-svg" width="800" height="600" viewBox="0 0 800 600"></svg>
+      <div class="zoom-controls">
+        <button class="zoom-button" id="zoom-in">+</button>
+        <button class="zoom-button" id="zoom-out">−</button>
+      </div>
+      <div id="hover-info" class="hover-info" style="display: none;"></div>
+    </div>
+    <div id="selection-info">
+      <p>地図データを読み込んでいます...</p>
+    </div>
+    <div id="debug-info" style="margin-top: 10px; padding: 10px; background: #f0f0f0; font-size: 12px; font-family: monospace; max-height: 150px; overflow-y: auto;">
+      デバッグ情報:
+    </div>
+  </div>
+
+  <script type="module">
+    // dist/index.es.js から必要な部分を直接読み込み
+    const module = await import('./dist/index.es.js');
+    const { JapanMapSelector } = module;
+    
+    console.log('JapanMapSelector loaded:', JapanMapSelector);
+    
+    // 要素の取得
+    const svg = document.getElementById('map-svg');
+    const backButton = document.getElementById('back-button');
+    const toggleIslandsButton = document.getElementById('toggle-islands-button');
+    const zoomInButton = document.getElementById('zoom-in');
+    const zoomOutButton = document.getElementById('zoom-out');
+    const hoverInfo = document.getElementById('hover-info');
+    const selectionInfo = document.getElementById('selection-info');
+    const debugInfo = document.getElementById('debug-info');
+    
+    // デバッグ関数
+    function debug(msg) {
+      const time = new Date().toLocaleTimeString();
+      debugInfo.innerHTML += `<br>${time}: ${msg}`;
+      debugInfo.scrollTop = debugInfo.scrollHeight;
+      console.log(msg);
+    }
+    
+    
+
+    // セレクターの初期化
+    debug('JapanMapSelectorを初期化中...');
+    const selector = new JapanMapSelector({
+      width: 800,
+      height: 600,
+      onPrefectureSelect: (prefecture) => {
+        debug(`onPrefectureSelect: ${prefecture.name}`);
+        selectionInfo.innerHTML = `<p>選択中: ${prefecture.name}</p>`;
+      },
+      onMunicipalitySelect: (municipality) => {
+        debug(`onMunicipalitySelect: ${municipality.name}`);
+        selectionInfo.innerHTML = `<p>選択中: ${municipality.name}</p>`;
+      }
+    });
+
+    // 状態変更のリスナー
+    let previousSelectedPrefecture = null;
+    selector.on('stateChanged', (state) => {
+      debug(`stateChanged: selectedPrefecture = ${state.selectedPrefecture?.name || 'null'}`);
+      // 選択された都道府県が変わった時のみビューボックスを更新
+      const shouldUpdateViewBox = previousSelectedPrefecture !== state.selectedPrefecture;
+      render(state, shouldUpdateViewBox);
+      previousSelectedPrefecture = state.selectedPrefecture;
+    });
+    
+    selector.on('prefectureSelected', (prefecture) => {
+      debug(`prefectureSelected event: ${prefecture.name}`);
+    });
+    
+    // ビューボックス管理
+    let currentViewBox = [0, 0, 800, 600];
+    
+    // ビューボックスをアニメーション付きで更新
+    function updateViewBox(newViewBox, duration = 300) {
+      const startTime = performance.now();
+      const startViewBox = [...currentViewBox];
+      
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // イージング
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        
+        const interpolated = startViewBox.map((start, i) => {
+          return start + (newViewBox[i] - start) * easeOut;
+        });
+        
+        svg.setAttribute('viewBox', interpolated.join(' '));
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          currentViewBox = [...newViewBox];
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+    
+    // ズーム機能
+    function zoom(factor, centerX = null, centerY = null) {
+      const [x, y, width, height] = currentViewBox;
+      
+      // ズームの中心点（指定されない場合はビューの中心）
+      const cx = centerX !== null ? centerX : x + width / 2;
+      const cy = centerY !== null ? centerY : y + height / 2;
+      
+      // 新しいサイズ
+      const newWidth = width / factor;
+      const newHeight = height / factor;
+      
+      // 最小・最大ズームレベルの制限
+      if (newWidth < 50 || newWidth > 2000 || newHeight < 50 || newHeight > 2000) {
+        return;
+      }
+      
+      // 中心点を維持しながら新しい位置を計算
+      const newX = cx - (cx - x) / factor;
+      const newY = cy - (cy - y) / factor;
+      
+      updateViewBox([newX, newY, newWidth, newHeight]);
+    }
+    
+    // パン（ドラッグ移動）機能
+    let isDragging = false;
+    let dragStartPoint = null;
+    let dragStartViewBox = null;
+    
+    svg.addEventListener('mousedown', (e) => {
+      if (e.button === 0) { // 左クリックのみ
+        isDragging = true;
+        dragStartPoint = { x: e.clientX, y: e.clientY };
+        dragStartViewBox = [...currentViewBox];
+        svg.style.cursor = 'grabbing';
+        e.preventDefault();
+      }
+    });
+    
+    svg.addEventListener('mousemove', (e) => {
+      if (isDragging && dragStartPoint) {
+        const scale = currentViewBox[2] / svg.clientWidth;
+        const dx = (dragStartPoint.x - e.clientX) * scale;
+        const dy = (dragStartPoint.y - e.clientY) * scale;
+        
+        const newViewBox = [
+          dragStartViewBox[0] + dx,
+          dragStartViewBox[1] + dy,
+          dragStartViewBox[2],
+          dragStartViewBox[3]
+        ];
+        
+        svg.setAttribute('viewBox', newViewBox.join(' '));
+        currentViewBox = newViewBox;
+      }
+    });
+    
+    svg.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        dragStartPoint = null;
+        svg.style.cursor = 'grab';
+      }
+    });
+    
+    // ドキュメント全体でmouseupを検出（SVG外でマウスを離した場合）
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        dragStartPoint = null;
+        svg.style.cursor = 'grab';
+      }
+    });
+    
+    
+    // マウスホイールでズーム
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      
+      // マウス位置をSVG座標に変換
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+      
+      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+      zoom(zoomFactor, svgP.x, svgP.y);
+    });
+    
+    // ズームボタン
+    zoomInButton.addEventListener('click', () => {
+      zoom(1.2);
+    });
+    
+    zoomOutButton.addEventListener('click', () => {
+      zoom(0.8);
+    });
+
+    
+    // レンダリング関数
+    function render(state, updateViewBoxFlag = true) {
+      // 初回または明示的な場合のみビューボックスを更新
+      if (updateViewBoxFlag) {
+        const newViewBox = state.viewBox.split(' ').map(Number);
+        updateViewBox(newViewBox);
+      }
+      
+      // バックボタンの表示/非表示
+      backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+      
+      // 東京都の場合は離島切り替えボタンを表示
+      if (state.selectedPrefecture?.code === '13') {
+        toggleIslandsButton.style.display = 'block';
+        toggleIslandsButton.textContent = state.showTokyoIslands ? '本土を表示' : '離島を表示';
+      } else {
+        toggleIslandsButton.style.display = 'none';
+      }
+      
+      // SVGの内容をクリア
+      svg.innerHTML = '';
+      
+      if (!state.selectedPrefecture) {
+        // 沖縄県の枠を先に描画（背景として）
+        const okinawaFrame = selector.getOkinawaFrame();
+        if (okinawaFrame) {
+          // 背景の白い矩形
+          const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          bgRect.setAttribute('x', okinawaFrame.x);
+          bgRect.setAttribute('y', okinawaFrame.y);
+          bgRect.setAttribute('width', okinawaFrame.width);
+          bgRect.setAttribute('height', okinawaFrame.height);
+          bgRect.setAttribute('fill', 'white');
+          bgRect.setAttribute('rx', '5');
+          bgRect.setAttribute('ry', '5');
+          bgRect.setAttribute('pointer-events', 'none');
+          svg.appendChild(bgRect);
+        }
+        
+        // 都道府県の描画（沖縄県を含む）
+        const prefectures = selector.getPrefectures();
+        debug(`描画する都道府県数: ${prefectures.length}`);
+        
+        prefectures.forEach(prefecture => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getPrefecturePath(prefecture));
+          path.setAttribute('fill', 
+            state.hoveredPrefecture?.code === prefecture.code ? '#b0b0b0' : '#e0e0e0'
+          );
+          path.setAttribute('stroke', '#999');
+          path.setAttribute('stroke-width', '0.5');
+          path.setAttribute('style', 'cursor: pointer;');
+          path.classList.add('prefecture-path');
+          
+          path.addEventListener('click', (e) => {
+            // ドラッグ中はクリックを無視
+            if (isDragging) return;
+            
+            e.stopPropagation();
+            debug(`クリック: ${prefecture.name} (code: ${prefecture.code})`);
+            selector.selectPrefecture(prefecture.code);
+          });
+          path.addEventListener('mouseenter', () => {
+            if (state.selectedPrefecture) return;
+            selector.hoverPrefecture(prefecture.code);
+          });
+          
+          path.addEventListener('mouseleave', () => {
+            selector.hoverPrefecture(null);
+          });
+          
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = prefecture.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+        
+        // 沖縄県の枠線とラベルを最後に描画（最前面）
+        if (okinawaFrame) {
+          // 枠線
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', okinawaFrame.x);
+          rect.setAttribute('y', okinawaFrame.y);
+          rect.setAttribute('width', okinawaFrame.width);
+          rect.setAttribute('height', okinawaFrame.height);
+          rect.setAttribute('fill', 'none');
+          rect.setAttribute('stroke', '#666');
+          rect.setAttribute('stroke-width', '2');
+          rect.setAttribute('stroke-dasharray', '5,5');
+          rect.setAttribute('rx', '5');
+          rect.setAttribute('ry', '5');
+          rect.setAttribute('pointer-events', 'none');
+          svg.appendChild(rect);
+          
+          // 「沖縄県」のラベル
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', okinawaFrame.x + okinawaFrame.width / 2);
+          text.setAttribute('y', okinawaFrame.y + 15); // 枠内に配置
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('font-size', '14');
+          text.setAttribute('font-weight', 'bold');
+          text.setAttribute('fill', '#333');
+          text.textContent = '沖縄県';
+          svg.appendChild(text);
+        }
+      } else {
+        // 選択された都道府県の背景を描画
+        const selectedPref = state.selectedPrefecture;
+        if (selectedPref) {
+          const bgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          bgPath.setAttribute('d', selector.getPrefecturePath(selectedPref));
+          bgPath.setAttribute('fill', '#f8f8f8');
+          bgPath.setAttribute('stroke', '#666');
+          bgPath.setAttribute('stroke-width', '2');
+          svg.appendChild(bgPath);
+        }
+        
+        // 市区町村の描画
+        const municipalities = selector.getSelectedMunicipalities();
+        municipalities.forEach(municipality => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getMunicipalityPath(municipality));
+          path.setAttribute('fill', 
+            state.hoveredMunicipality?.code === municipality.code ? '#b0b0b0' : '#e0e0e0'
+          );
+          path.setAttribute('stroke', '#666');
+          path.setAttribute('stroke-width', '0.5');
+          path.setAttribute('style', 'cursor: pointer;');
+          path.classList.add('municipality-path');
+          
+          path.addEventListener('click', () => {
+            // ドラッグ中はクリックを無視
+            if (isDragging) return;
+            
+            console.log('Municipality clicked:', municipality.name, municipality.code);
+            selector.selectMunicipality(municipality.code);
+          });
+          path.addEventListener('mouseenter', () => {
+            selector.hoverMunicipality(municipality.code);
+            // ホバーした要素を最前面に移動
+            svg.appendChild(path);
+          });
+          
+          path.addEventListener('mouseleave', () => {
+            selector.hoverMunicipality(null);
+          });
+          
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = municipality.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+        
+        // 都道府県名を表示
+        if (selectedPref) {
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', '20');
+          text.setAttribute('y', '40');
+          text.setAttribute('font-size', '24');
+          text.setAttribute('font-weight', 'bold');
+          text.setAttribute('fill', '#333');
+          text.textContent = selectedPref.name;
+          svg.appendChild(text);
+        }
+      }
+      
+      // ホバー情報の更新
+      if (state.hoveredPrefecture || state.hoveredMunicipality) {
+        hoverInfo.style.display = 'block';
+        if (state.hoveredPrefecture && !state.selectedPrefecture) {
+          hoverInfo.textContent = state.hoveredPrefecture.name;
+        } else if (state.hoveredMunicipality) {
+          hoverInfo.textContent = state.hoveredMunicipality.name;
+        }
+      } else {
+        hoverInfo.style.display = 'none';
+      }
+    }
+
+    // バックボタンのイベント
+    backButton.addEventListener('click', () => {
+      selector.resetView();
+    });
+    
+    // 離島切り替えボタンのイベント
+    toggleIslandsButton.addEventListener('click', () => {
+      debug('離島表示を切り替え');
+      selector.toggleTokyoIslands();
+    });
+
+    // データの読み込みと初期化
+    try {
+      debug('データを読み込み中...');
+      await selector.initialize(
+        './src/data/prefectures.geojson',
+        './src/data/municipalities.geojson'
+      );
+      const prefectures = selector.getPrefectures();
+      debug(`データ読み込み完了: ${prefectures.length}個の都道府県`);
+      if (prefectures.length > 0) {
+        debug(`最初の都道府県: ${prefectures[0].name} (${prefectures[0].code})`);
+      }
+      selectionInfo.innerHTML = '<p>都道府県をクリックして選択してください。</p>';
+      render(selector.getState());
+    } catch (error) {
+      debug(`エラー: ${error.message}`);
+      console.error('データの読み込みエラー:', error);
+      selectionInfo.innerHTML = `<p style="color: red;">エラー: ${error.message}</p>`;
+    }
+  </script>
+</body>
+</html>

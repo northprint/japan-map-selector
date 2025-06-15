@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クリックテスト</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    #map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .back-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+    }
+    .prefecture-path {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>クリックテスト</h1>
+  
+  <div id="map-container">
+    <div style="position: relative;">
+      <button id="back-button" class="back-button" style="display: none;">
+        ← 全国に戻る
+      </button>
+      <svg id="map-svg" class="map-svg" width="800" height="600" viewBox="0 0 800 600"></svg>
+    </div>
+    <div id="status">読み込み中...</div>
+  </div>
+
+  <script type="module">
+    const svg = document.getElementById('map-svg');
+    const backButton = document.getElementById('back-button');
+    const statusDiv = document.getElementById('status');
+    
+    // モジュールを読み込み
+    const module = await import('./dist/index.es.js');
+    const { JapanMapSelector } = module;
+    
+    // セレクターの初期化
+    const selector = new JapanMapSelector({
+      width: 800,
+      height: 600,
+      onPrefectureSelect: (prefecture) => {
+        statusDiv.textContent = `選択された都道府県: ${prefecture.name} (コード: ${prefecture.code})`;
+      },
+      onMunicipalitySelect: (municipality) => {
+        statusDiv.textContent = `選択された市区町村: ${municipality.name} (コード: ${municipality.code})`;
+      }
+    });
+    
+    // 状態変更のリスナー
+    selector.on('stateChanged', (state) => {
+      render(state);
+    });
+    
+    // レンダリング関数
+    function render(state) {
+      svg.setAttribute('viewBox', state.viewBox);
+      backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+      svg.innerHTML = '';
+      
+      if (!state.selectedPrefecture) {
+        // 都道府県の描画
+        const prefectures = selector.getPrefectures();
+        console.log('都道府県数:', prefectures.length);
+        
+        prefectures.forEach(prefecture => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getPrefecturePath(prefecture));
+          path.setAttribute('fill', '#e0e0e0');
+          path.setAttribute('stroke', '#999');
+          path.setAttribute('stroke-width', '0.5');
+          path.setAttribute('class', 'prefecture-path');
+          
+          // クリックイベント
+          path.addEventListener('click', () => {
+            console.log('クリック:', prefecture.name, prefecture.code);
+            selector.selectPrefecture(prefecture.code);
+          });
+          
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = prefecture.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+        
+        // 沖縄県の枠
+        const okinawaFrame = selector.getOkinawaFrame();
+        if (okinawaFrame) {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', okinawaFrame.x);
+          rect.setAttribute('y', okinawaFrame.y);
+          rect.setAttribute('width', okinawaFrame.width);
+          rect.setAttribute('height', okinawaFrame.height);
+          rect.setAttribute('fill', 'none');
+          rect.setAttribute('stroke', '#666');
+          rect.setAttribute('stroke-width', '2');
+          rect.setAttribute('stroke-dasharray', '5,5');
+          rect.setAttribute('rx', '5');
+          rect.setAttribute('ry', '5');
+          svg.appendChild(rect);
+          
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', okinawaFrame.x + okinawaFrame.width / 2);
+          text.setAttribute('y', okinawaFrame.y + 15);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('font-size', '14');
+          text.setAttribute('font-weight', 'bold');
+          text.setAttribute('fill', '#333');
+          text.textContent = '沖縄県';
+          svg.appendChild(text);
+        }
+      } else {
+        // 市区町村の描画
+        const municipalities = selector.getSelectedMunicipalities();
+        municipalities.forEach(municipality => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getMunicipalityPath(municipality));
+          path.setAttribute('fill', '#e0e0e0');
+          path.setAttribute('stroke', '#666');
+          path.setAttribute('stroke-width', '0.5');
+          
+          path.addEventListener('click', () => {
+            console.log('市区町村クリック:', municipality.name, municipality.code);
+            selector.selectMunicipality(municipality.code);
+          });
+          
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = municipality.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+      }
+    }
+    
+    // バックボタンのイベント
+    backButton.addEventListener('click', () => {
+      selector.resetView();
+    });
+    
+    // データの読み込みと初期化
+    try {
+      await selector.initialize(
+        './src/data/prefectures.geojson',
+        './src/data/municipalities.geojson'
+      );
+      statusDiv.textContent = '都道府県をクリックしてください';
+      render(selector.getState());
+    } catch (error) {
+      statusDiv.textContent = `エラー: ${error.message}`;
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シンプルテスト</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    svg {
+      border: 1px solid #ccc;
+    }
+    path {
+      cursor: pointer;
+    }
+    #log {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      font-family: monospace;
+      font-size: 12px;
+      height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>シンプルテスト</h1>
+  <button onclick="testDirect()">直接selectPrefectureを呼ぶ</button>
+  <svg id="svg" width="800" height="600"></svg>
+  <div id="log"></div>
+
+  <script type="module">
+    const logDiv = document.getElementById('log');
+    const svg = document.getElementById('svg');
+    
+    function log(msg) {
+      logDiv.innerHTML += `${new Date().toLocaleTimeString()}: ${msg}<br>`;
+      console.log(msg);
+    }
+    
+    // グローバルに公開
+    window.log = log;
+    
+    try {
+      log('モジュールを読み込み中...');
+      const module = await import('./dist/index.es.js');
+      const { JapanMapSelector } = module;
+      
+      log('JapanMapSelectorを初期化中...');
+      const selector = new JapanMapSelector({
+        width: 800,
+        height: 600
+      });
+      
+      // グローバルに公開
+      window.selector = selector;
+      
+      // イベントリスナー設定
+      selector.on('stateChanged', (state) => {
+        log(`stateChanged: selectedPrefecture = ${state.selectedPrefecture?.name || 'null'}`);
+        render();
+      });
+      
+      selector.on('prefectureSelected', (prefecture) => {
+        log(`prefectureSelected: ${prefecture.name}`);
+      });
+      
+      // データ読み込み
+      log('データを読み込み中...');
+      await selector.initialize(
+        './src/data/prefectures.geojson',
+        './src/data/municipalities.geojson'
+      );
+      
+      const prefectures = selector.getPrefectures();
+      log(`${prefectures.length}個の都道府県を読み込みました`);
+      
+      if (prefectures.length > 0) {
+        log(`最初の都道府県: ${prefectures[0].name} (${prefectures[0].code})`);
+      }
+      
+      // レンダリング
+      function render() {
+        const state = selector.getState();
+        svg.innerHTML = '';
+        
+        if (!state.selectedPrefecture) {
+          // 都道府県を描画
+          prefectures.forEach((pref, index) => {
+            if (index < 5) { // 最初の5つだけ表示
+              const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              rect.setAttribute('x', index * 150 + 10);
+              rect.setAttribute('y', 10);
+              rect.setAttribute('width', 140);
+              rect.setAttribute('height', 100);
+              rect.setAttribute('fill', '#e0e0e0');
+              rect.setAttribute('stroke', '#666');
+              
+              rect.onclick = function() {
+                log(`クリック: ${pref.name} (${pref.code})`);
+                selector.selectPrefecture(pref.code);
+              };
+              
+              svg.appendChild(rect);
+              
+              const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              text.setAttribute('x', index * 150 + 80);
+              text.setAttribute('y', 60);
+              text.setAttribute('text-anchor', 'middle');
+              text.textContent = pref.name;
+              text.style.pointerEvents = 'none';
+              svg.appendChild(text);
+            }
+          });
+        } else {
+          // 選択された都道府県を表示
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', 400);
+          text.setAttribute('y', 300);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('font-size', '48');
+          text.textContent = state.selectedPrefecture.name;
+          svg.appendChild(text);
+          
+          // 戻るボタン
+          const backBtn = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          backBtn.setAttribute('x', 10);
+          backBtn.setAttribute('y', 10);
+          backBtn.setAttribute('width', 100);
+          backBtn.setAttribute('height', 40);
+          backBtn.setAttribute('fill', 'white');
+          backBtn.setAttribute('stroke', 'black');
+          backBtn.onclick = () => {
+            log('戻るボタンクリック');
+            selector.resetView();
+          };
+          svg.appendChild(backBtn);
+          
+          const backText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          backText.setAttribute('x', 60);
+          backText.setAttribute('y', 35);
+          backText.setAttribute('text-anchor', 'middle');
+          backText.textContent = '戻る';
+          backText.style.pointerEvents = 'none';
+          svg.appendChild(backText);
+        }
+      }
+      
+      render();
+      
+      // 直接呼び出しテスト
+      window.testDirect = function() {
+        log('直接selectPrefectureを呼び出し');
+        if (prefectures.length > 0) {
+          log(`選択: ${prefectures[0].name} (${prefectures[0].code})`);
+          selector.selectPrefecture(prefectures[0].code);
+        }
+      };
+      
+    } catch (error) {
+      log(`エラー: ${error.message}`);
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

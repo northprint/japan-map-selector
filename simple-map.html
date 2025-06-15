@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シンプル地図表示</title>
+  <style>
+    body { margin: 20px; font-family: sans-serif; }
+    svg { border: 1px solid #ccc; background: #f0f0f0; }
+    path { fill: #e0e0e0; stroke: #999; stroke-width: 0.5; cursor: pointer; }
+    path:hover { fill: #c0c0c0; }
+    #info { margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h1>シンプル地図表示テスト</h1>
+  <svg id="map" width="800" height="600" viewBox="0 0 800 600"></svg>
+  <div id="info">読み込み中...</div>
+  
+  <script type="module">
+    const svg = document.getElementById('map');
+    const info = document.getElementById('info');
+    
+    try {
+      // モジュールを読み込み
+      const module = await import('./dist/index.es.js');
+      const { JapanMapSelector } = module;
+      
+      // インスタンス作成
+      const selector = new JapanMapSelector();
+      
+      // データ読み込み
+      await selector.initialize(
+        './src/data/prefectures.geojson',
+        './src/data/municipalities.geojson'
+      );
+      
+      info.textContent = 'データ読み込み完了';
+      
+      // 都道府県を描画
+      const prefectures = selector.getPrefectures();
+      info.textContent += ` - 都道府県数: ${prefectures.length}`;
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      prefectures.forEach((prefecture, index) => {
+        try {
+          const pathData = selector.getPrefecturePath(prefecture);
+          
+          if (pathData && pathData.trim() !== '') {
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            
+            const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+            title.textContent = prefecture.name;
+            path.appendChild(title);
+            
+            path.addEventListener('click', () => {
+              info.textContent = `クリック: ${prefecture.name}`;
+            });
+            
+            svg.appendChild(path);
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`Error rendering ${prefecture.name}:`, error);
+          errorCount++;
+        }
+      });
+      
+      info.textContent += ` - 成功: ${successCount}, エラー: ${errorCount}`;
+      
+    } catch (error) {
+      console.error('エラー:', error);
+      info.textContent = 'エラー: ' + error.message;
+    }
+  </script>
+</body>
+</html>

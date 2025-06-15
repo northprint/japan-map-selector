@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クリックイベントデバッグ</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    #map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    #debug {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .back-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      padding: 8px 16px;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+    }
+    .prefecture-path {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>クリックイベントデバッグ</h1>
+  
+  <div id="map-container">
+    <div style="position: relative;">
+      <button id="back-button" class="back-button" style="display: none;">
+        ← 全国に戻る
+      </button>
+      <svg id="map-svg" class="map-svg" width="800" height="600" viewBox="0 0 800 600"></svg>
+    </div>
+    <div id="debug">デバッグ情報がここに表示されます...</div>
+  </div>
+
+  <script type="module">
+    const svg = document.getElementById('map-svg');
+    const backButton = document.getElementById('back-button');
+    const debugDiv = document.getElementById('debug');
+    
+    function log(message) {
+      const time = new Date().toLocaleTimeString();
+      debugDiv.innerHTML = `${time}: ${message}<br>` + debugDiv.innerHTML;
+      console.log(message);
+    }
+    
+    // モジュールを読み込み
+    const module = await import('./dist/index.es.js');
+    const { JapanMapSelector } = module;
+    
+    log('JapanMapSelector loaded');
+    
+    // セレクターの初期化
+    const selector = new JapanMapSelector({
+      width: 800,
+      height: 600,
+      onPrefectureSelect: (prefecture) => {
+        log(`onPrefectureSelect callback: ${prefecture.name}`);
+      },
+      onMunicipalitySelect: (municipality) => {
+        log(`onMunicipalitySelect callback: ${municipality.name}`);
+      }
+    });
+    
+    // 状態変更のリスナー
+    selector.on('stateChanged', (state) => {
+      log(`State changed: selectedPrefecture = ${state.selectedPrefecture?.name || 'null'}`);
+      render(state);
+    });
+    
+    selector.on('prefectureSelected', (prefecture) => {
+      log(`Event: prefectureSelected - ${prefecture.name}`);
+    });
+    
+    selector.on('municipalitySelected', (municipality) => {
+      log(`Event: municipalitySelected - ${municipality.name}`);
+    });
+    
+    // レンダリング関数
+    function render(state) {
+      svg.setAttribute('viewBox', state.viewBox);
+      backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+      svg.innerHTML = '';
+      
+      const prefectures = selector.getPrefectures();
+      prefectures.forEach(prefecture => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', selector.getPrefecturePath(prefecture));
+        path.setAttribute('fill', '#e0e0e0');
+        path.setAttribute('stroke', '#999');
+        path.setAttribute('stroke-width', '0.5');
+        path.setAttribute('class', 'prefecture-path');
+        
+        // クリックイベントをデバッグ
+        path.addEventListener('click', (e) => {
+          log(`Click event on path: ${prefecture.name} (code: ${prefecture.code})`);
+          log(`Calling selector.selectPrefecture('${prefecture.code}')`);
+          selector.selectPrefecture(prefecture.code);
+        });
+        
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = prefecture.name;
+        path.appendChild(title);
+        
+        svg.appendChild(path);
+      });
+    }
+    
+    // バックボタンのイベント
+    backButton.addEventListener('click', () => {
+      log('Back button clicked');
+      selector.resetView();
+    });
+    
+    // データの読み込みと初期化
+    try {
+      log('Starting data initialization...');
+      await selector.initialize(
+        '../src/data/prefectures.geojson',
+        '../src/data/municipalities.geojson'
+      );
+      log(`Data loaded: ${selector.getPrefectures().length} prefectures`);
+      render(selector.getState());
+    } catch (error) {
+      log(`Error: ${error.message}`);
+    }
+  </script>
+</body>
+</html>
