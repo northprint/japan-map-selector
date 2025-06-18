@@ -22,7 +22,10 @@ Interactive Japan map component for selecting prefectures and municipalities. Bu
 
 ## Demo
 
-See the [live demo](demo.html) locally by running:
+- 📚 [Documentation](https://northprint.github.io/japan-map-selector/) (After GitHub Pages is enabled)
+- 🎮 [Live Demo](https://northprint.github.io/japan-map-selector/demo) (After GitHub Pages is enabled)
+
+To run the demo locally:
 
 ```bash
 # Start a local server
