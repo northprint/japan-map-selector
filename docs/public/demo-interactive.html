@@ -331,6 +331,7 @@
     </div>
   </div>
 
+  <script src="./prefecture-paths-demo.js"></script>
   <script>
     // シンプルなデモ実装
     const demoApp = {
@@ -392,56 +393,56 @@
       loadDemo() {
         // デモ用のサンプルマップを表示
         const mapContainer = document.getElementById('map');
-        mapContainer.innerHTML = `
+        
+        // SVGを作成
+        let svg = `
           <svg viewBox="0 0 800 600" style="width: 100%; height: 100%;">
             <!-- 背景 -->
             <rect width="800" height="600" fill="#f0f8ff" />
             
             <!-- サンプル都道府県 -->
             <g id="prefectures">
-              <!-- 北海道 -->
-              <path d="M 400 50 L 500 100 L 480 200 L 350 180 L 300 100 Z" 
+        `;
+        
+        // 通常の都道府県を描画
+        Object.entries(prefecturesPaths).forEach(([code, pref]) => {
+          if (!pref.inset) {
+            svg += `
+              <path d="${pref.path}" 
                     class="prefecture-path" 
-                    data-code="01" 
-                    data-name="北海道">
-                <title>北海道</title>
+                    data-code="${code}" 
+                    data-name="${pref.name}"
+                    fill="${pref.color}">
+                <title>${pref.name}</title>
               </path>
-              
-              <!-- 東京都 -->
-              <path d="M 350 350 L 400 340 L 420 380 L 380 400 L 340 390 Z" 
-                    class="prefecture-path" 
-                    data-code="13" 
-                    data-name="東京都">
-                <title>東京都</title>
-              </path>
-              
-              <!-- 大阪府 -->
-              <path d="M 250 380 L 290 370 L 300 410 L 260 420 L 240 400 Z" 
-                    class="prefecture-path" 
-                    data-code="27" 
-                    data-name="大阪府">
-                <title>大阪府</title>
-              </path>
-              
-              <!-- 福岡県 -->
-              <path d="M 100 400 L 150 390 L 160 430 L 120 440 L 90 420 Z" 
-                    class="prefecture-path" 
-                    data-code="40" 
-                    data-name="福岡県">
-                <title>福岡県</title>
-              </path>
+            `;
+          }
+        });
+        
+        svg += `
             </g>
             
             <!-- 沖縄県（別枠） -->
             <g id="okinawa-frame">
               <rect x="20" y="50" width="180" height="140" class="okinawa-frame" />
               <text x="30" y="70" class="okinawa-label">沖縄県</text>
-              <path d="M 80 120 L 120 110 L 140 130 L 100 140 L 70 130 Z" 
+        `;
+        
+        // 沖縄県を描画
+        const okinawa = prefecturesPaths['47'];
+        if (okinawa) {
+          svg += `
+              <path d="${okinawa.path}" 
                     class="prefecture-path" 
                     data-code="47" 
-                    data-name="沖縄県">
-                <title>沖縄県</title>
+                    data-name="${okinawa.name}"
+                    fill="${okinawa.color}">
+                <title>${okinawa.name}</title>
               </path>
+          `;
+        }
+        
+        svg += `
             </g>
             
             <!-- デモ注記 -->
@@ -451,6 +452,7 @@
           </svg>
         `;
         
+        mapContainer.innerHTML = svg;
         this.setupMapInteractions();
       },
       
