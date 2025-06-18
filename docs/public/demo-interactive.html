@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Interactive Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    
+    .demo-header {
+      background: #1e1e1e;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .demo-header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+    }
+    
+    .demo-header a {
+      color: #4fc3f7;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .demo-header a:hover {
+      text-decoration: underline;
+    }
+    
+    .controls-panel {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      padding: 15px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .control-group label {
+      font-size: 14px;
+      color: #495057;
+      font-weight: 500;
+    }
+    
+    select {
+      padding: 6px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    
+    button {
+      padding: 6px 16px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #e9ecef;
+    }
+    
+    button:active {
+      transform: translateY(1px);
+    }
+    
+    .map-container {
+      height: calc(100vh - 120px);
+      position: relative;
+      background: white;
+      overflow: hidden;
+    }
+    
+    .map-area {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    
+    #map {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    
+    #map.dragging {
+      cursor: grabbing;
+    }
+    
+    .info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      min-width: 250px;
+      max-width: 300px;
+    }
+    
+    .info-panel h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      color: #212529;
+    }
+    
+    .info-panel p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    
+    .info-panel strong {
+      color: #212529;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .error {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: #dc3545;
+    }
+    
+    .attribution {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 5px 10px;
+      font-size: 11px;
+      color: #666;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .attribution a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    
+    .zoom-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .zoom-controls button {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .zoom-controls button:hover {
+      background: #f8f9fa;
+    }
+    
+    /* 都道府県のスタイル */
+    .prefecture-path {
+      stroke: #666;
+      stroke-width: 0.5;
+      fill: #e3f2fd;
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    
+    .prefecture-path:hover {
+      fill: #bbdefb;
+    }
+    
+    .prefecture-path.selected {
+      fill: #90caf9;
+    }
+    
+    .prefecture-path.disabled {
+      fill: #f5f5f5;
+      cursor: not-allowed;
+    }
+    
+    /* 市区町村のスタイル */
+    .municipality-path {
+      stroke: #999;
+      stroke-width: 0.3;
+      fill: #fff3e0;
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    
+    .municipality-path:hover {
+      fill: #ffe0b2;
+    }
+    
+    .municipality-path.selected {
+      fill: #ffcc80;
+    }
+    
+    /* 沖縄県の枠 */
+    .okinawa-frame {
+      stroke: #666;
+      stroke-width: 1;
+      fill: none;
+      stroke-dasharray: 5, 5;
+    }
+    
+    .okinawa-label {
+      font-size: 12px;
+      fill: #666;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    <h1>Japan Map Selector - Interactive Demo</h1>
+    <a href="/japan-map-selector/">← ドキュメントに戻る</a>
+  </div>
+  
+  <div class="controls-panel">
+    <div class="control-group">
+      <label>テーマ:</label>
+      <select id="theme-select">
+        <option value="default">Default</option>
+        <option value="dark">Dark</option>
+        <option value="colorful">Colorful</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label>簡略化:</label>
+      <select id="simplification-select">
+        <option value="0.1">詳細</option>
+        <option value="0.5" selected>標準</option>
+        <option value="1.0">簡略</option>
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label>ディフォルメ:</label>
+      <select id="deform-select">
+        <option value="none" selected>なし</option>
+        <option value="grid">グリッド</option>
+        <option value="hexagon">六角形</option>
+      </select>
+    </div>
+    
+    <button id="reset-btn">リセット</button>
+    <button id="tokyo-islands-btn" style="display: none;">東京都離島を表示</button>
+  </div>
+  
+  <div class="map-container">
+    <div class="map-area">
+      <div id="map">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>地図データを読み込んでいます...</p>
+        </div>
+      </div>
+      
+      <div class="info-panel">
+        <h3>情報</h3>
+        <p id="info-text">都道府県をクリックして選択してください</p>
+      </div>
+      
+      <div class="zoom-controls">
+        <button id="zoom-in" title="ズームイン">+</button>
+        <button id="zoom-out" title="ズームアウト">−</button>
+      </div>
+      
+      <div class="attribution">
+        地図データ：<a href="https://nlftp.mlit.go.jp/ksj/index.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // シンプルなデモ実装
+    const demoApp = {
+      theme: 'default',
+      simplificationLevel: 0.5,
+      deformMode: 'none',
+      selectedPrefecture: null,
+      selectedMunicipality: null,
+      scale: 1,
+      translateX: 0,
+      translateY: 0,
+      
+      init() {
+        this.setupEventListeners();
+        this.loadDemo();
+      },
+      
+      setupEventListeners() {
+        // テーマ変更
+        document.getElementById('theme-select').addEventListener('change', (e) => {
+          this.theme = e.target.value;
+          this.updateTheme();
+        });
+        
+        // 簡略化レベル変更
+        document.getElementById('simplification-select').addEventListener('change', (e) => {
+          this.simplificationLevel = parseFloat(e.target.value);
+          this.updateMap();
+        });
+        
+        // ディフォルメモード変更
+        document.getElementById('deform-select').addEventListener('change', (e) => {
+          this.deformMode = e.target.value;
+          this.updateMap();
+        });
+        
+        // リセット
+        document.getElementById('reset-btn').addEventListener('click', () => {
+          this.reset();
+        });
+        
+        // ズーム
+        document.getElementById('zoom-in').addEventListener('click', () => {
+          this.zoom(1.2);
+        });
+        
+        document.getElementById('zoom-out').addEventListener('click', () => {
+          this.zoom(0.8);
+        });
+        
+        // キーボードショートカット
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.reset();
+          }
+        });
+      },
+      
+      loadDemo() {
+        // デモ用のサンプルマップを表示
+        const mapContainer = document.getElementById('map');
+        mapContainer.innerHTML = `
+          <svg viewBox="0 0 800 600" style="width: 100%; height: 100%;">
+            <!-- 背景 -->
+            <rect width="800" height="600" fill="#f0f8ff" />
+            
+            <!-- サンプル都道府県 -->
+            <g id="prefectures">
+              <!-- 北海道 -->
+              <path d="M 400 50 L 500 100 L 480 200 L 350 180 L 300 100 Z" 
+                    class="prefecture-path" 
+                    data-code="01" 
+                    data-name="北海道">
+                <title>北海道</title>
+              </path>
+              
+              <!-- 東京都 -->
+              <path d="M 350 350 L 400 340 L 420 380 L 380 400 L 340 390 Z" 
+                    class="prefecture-path" 
+                    data-code="13" 
+                    data-name="東京都">
+                <title>東京都</title>
+              </path>
+              
+              <!-- 大阪府 -->
+              <path d="M 250 380 L 290 370 L 300 410 L 260 420 L 240 400 Z" 
+                    class="prefecture-path" 
+                    data-code="27" 
+                    data-name="大阪府">
+                <title>大阪府</title>
+              </path>
+              
+              <!-- 福岡県 -->
+              <path d="M 100 400 L 150 390 L 160 430 L 120 440 L 90 420 Z" 
+                    class="prefecture-path" 
+                    data-code="40" 
+                    data-name="福岡県">
+                <title>福岡県</title>
+              </path>
+            </g>
+            
+            <!-- 沖縄県（別枠） -->
+            <g id="okinawa-frame">
+              <rect x="20" y="50" width="180" height="140" class="okinawa-frame" />
+              <text x="30" y="70" class="okinawa-label">沖縄県</text>
+              <path d="M 80 120 L 120 110 L 140 130 L 100 140 L 70 130 Z" 
+                    class="prefecture-path" 
+                    data-code="47" 
+                    data-name="沖縄県">
+                <title>沖縄県</title>
+              </path>
+            </g>
+            
+            <!-- デモ注記 -->
+            <text x="400" y="580" text-anchor="middle" font-size="12" fill="#999">
+              ※ これはデモ用の簡略化された地図です
+            </text>
+          </svg>
+        `;
+        
+        this.setupMapInteractions();
+      },
+      
+      setupMapInteractions() {
+        // 都道府県のクリックイベント
+        document.querySelectorAll('.prefecture-path').forEach(path => {
+          path.addEventListener('click', (e) => {
+            const code = e.target.dataset.code;
+            const name = e.target.dataset.name;
+            this.selectPrefecture(code, name);
+          });
+          
+          path.addEventListener('mouseenter', (e) => {
+            if (!this.selectedPrefecture) {
+              e.target.style.fill = '#bbdefb';
+            }
+          });
+          
+          path.addEventListener('mouseleave', (e) => {
+            if (!this.selectedPrefecture || this.selectedPrefecture.code !== e.target.dataset.code) {
+              e.target.style.fill = '';
+            }
+          });
+        });
+      },
+      
+      selectPrefecture(code, name) {
+        // 前の選択をクリア
+        document.querySelectorAll('.prefecture-path').forEach(p => {
+          p.classList.remove('selected');
+        });
+        
+        // 新しい選択
+        const selected = document.querySelector(`[data-code="${code}"]`);
+        if (selected) {
+          selected.classList.add('selected');
+        }
+        
+        this.selectedPrefecture = { code, name };
+        this.updateInfo(`選択中: <strong>${name}</strong>`);
+        
+        // 東京都の場合は離島ボタンを表示
+        const tokyoBtn = document.getElementById('tokyo-islands-btn');
+        if (code === '13') {
+          tokyoBtn.style.display = 'block';
+        } else {
+          tokyoBtn.style.display = 'none';
+        }
+      },
+      
+      updateInfo(html) {
+        document.getElementById('info-text').innerHTML = html;
+      },
+      
+      updateTheme() {
+        const themes = {
+          default: {
+            fill: '#e3f2fd',
+            hover: '#bbdefb',
+            selected: '#90caf9'
+          },
+          dark: {
+            fill: '#424242',
+            hover: '#616161',
+            selected: '#757575'
+          },
+          colorful: {
+            fill: '#ffeb3b',
+            hover: '#ffc107',
+            selected: '#ff9800'
+          }
+        };
+        
+        const theme = themes[this.theme];
+        const style = document.createElement('style');
+        style.textContent = `
+          .prefecture-path { fill: ${theme.fill}; }
+          .prefecture-path:hover { fill: ${theme.hover}; }
+          .prefecture-path.selected { fill: ${theme.selected}; }
+        `;
+        document.head.appendChild(style);
+      },
+      
+      updateMap() {
+        // デモでは視覚的な変化なし
+        console.log('Map updated with:', {
+          simplificationLevel: this.simplificationLevel,
+          deformMode: this.deformMode
+        });
+      },
+      
+      zoom(factor) {
+        this.scale *= factor;
+        console.log('Zoom:', this.scale);
+        // 実際のズーム実装は省略
+      },
+      
+      reset() {
+        this.selectedPrefecture = null;
+        this.selectedMunicipality = null;
+        document.querySelectorAll('.prefecture-path').forEach(p => {
+          p.classList.remove('selected');
+        });
+        this.updateInfo('都道府県をクリックして選択してください');
+        document.getElementById('tokyo-islands-btn').style.display = 'none';
+      }
+    };
+    
+    // 初期化
+    document.addEventListener('DOMContentLoaded', () => {
+      demoApp.init();
+    });
+  </script>
+</body>
+</html>

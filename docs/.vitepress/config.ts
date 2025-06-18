@@ -11,6 +11,11 @@ export default defineConfig({
       rollupOptions: {
         external: ['/dist/index.es.js']
       }
+    },
+    server: {
+      fs: {
+        allow: ['..']
+      }
     }
   },
   
