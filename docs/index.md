@@ -6,7 +6,7 @@ hero:
   text: 日本の地図コンポーネント
   tagline: 都道府県・市区町村を選択できるインタラクティブな地図をWebアプリケーションに簡単に追加
   image:
-    src: /map-preview.png
+    src: /map-preview.svg
     alt: Japan Map Selector
   actions:
     - theme: brand
