@@ -11,3 +11,9 @@ export * from './core/data-loader';
 
 // レンダリングユーティリティ
 export * from './core/map-renderer';
+
+// テーマ
+export * from './core/themes';
+
+// 出典表示
+export * from './core/attribution';

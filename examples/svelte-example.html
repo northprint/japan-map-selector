@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Svelte Example - Japan Map Selector</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #f0f0f0;
+    }
+    
+    button.active {
+      background: #ff3e00;
+      color: white;
+      border-color: #ff3e00;
+    }
+    
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 4px solid #ff3e00;
+    }
+    
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+    }
+    
+    select {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Svelte Example - 日本地図セレクター</h1>
+    <div id="app"></div>
+  </div>
+
+  <!-- Svelte をCDNから読み込み -->
+  <script src="https://unpkg.com/svelte@3/dist/svelte.js"></script>
+  
+  <script>
+    // Svelteコンポーネントのコード
+    const AppCode = `
+      <script>
+        import { onMount } from 'svelte';
+        
+        let selector = null;
+        let loading = true;
+        let selectedPrefecture = null;
+        let selectedMunicipality = null;
+        let theme = 'default';
+        let showIslands = false;
+        let simplificationLevel = 0.1;
+        let deformMode = 'none';
+        let colorMode = 'default';
+        
+        // カスタムカラー設定
+        const colorModes = {
+          default: {},
+          population: {
+            // 人口密度に基づく色分け（デモ用の仮想データ）
+            prefectureFill: (prefecture) => {
+              const densityMap = {
+                '13': '#ff0000', // 東京都
+                '27': '#ff3300', // 大阪府
+                '14': '#ff6600', // 神奈川県
+                '23': '#ff9900', // 愛知県
+                '11': '#ffcc00', // 埼玉県
+                '12': '#ffff00', // 千葉県
+                '28': '#ccff00', // 兵庫県
+                '40': '#99ff00', // 福岡県
+                '01': '#66ff00', // 北海道
+              };
+              return densityMap[prefecture.code] || '#90EE90';
+            }
+          },
+          regions: {
+            // 地方別の色分け
+            prefectureFill: (prefecture) => {
+              const regionMap = {
+                // 北海道・東北
+                '01': '#4169E1', '02': '#4169E1', '03': '#4169E1', 
+                '04': '#4169E1', '05': '#4169E1', '06': '#4169E1', '07': '#4169E1',
+                // 関東
+                '08': '#32CD32', '09': '#32CD32', '10': '#32CD32', 
+                '11': '#32CD32', '12': '#32CD32', '13': '#32CD32', '14': '#32CD32',
+                // 中部
+                '15': '#FFD700', '16': '#FFD700', '17': '#FFD700', '18': '#FFD700',
+                '19': '#FFD700', '20': '#FFD700', '21': '#FFD700', '22': '#FFD700', '23': '#FFD700',
+                // 近畿
+                '24': '#FF69B4', '25': '#FF69B4', '26': '#FF69B4', 
+                '27': '#FF69B4', '28': '#FF69B4', '29': '#FF69B4', '30': '#FF69B4',
+                // 中国・四国
+                '31': '#FFA500', '32': '#FFA500', '33': '#FFA500', '34': '#FFA500', '35': '#FFA500',
+                '36': '#FFA500', '37': '#FFA500', '38': '#FFA500', '39': '#FFA500',
+                // 九州・沖縄
+                '40': '#9370DB', '41': '#9370DB', '42': '#9370DB', '43': '#9370DB',
+                '44': '#9370DB', '45': '#9370DB', '46': '#9370DB', '47': '#9370DB'
+              };
+              return regionMap[prefecture.code] || '#90EE90';
+            }
+          }
+        };
+        
+        onMount(async () => {
+          try {
+            // モジュールを動的にインポート
+            const module = await import('../dist/index.es.js');
+            const JapanMapSelectorSvelte = module.JapanMapSelectorSvelte;
+            
+            // セレクターのインスタンスを作成
+            selector = new JapanMapSelectorSvelte({
+              target: document.getElementById('map-container'),
+              props: {
+                width: 800,
+                height: 600,
+                theme: theme,
+                simplificationLevel: simplificationLevel,
+                showAttributionOnSVG: true,
+                ...colorModes[colorMode]
+              }
+            });
+            
+            // イベントリスナーの設定
+            selector.$on('prefectureSelected', (event) => {
+              selectedPrefecture = event.detail;
+              selectedMunicipality = null;
+            });
+            
+            selector.$on('municipalitySelected', (event) => {
+              selectedMunicipality = event.detail;
+            });
+            
+            // データの読み込み
+            await selector.initialize(
+              './src/data/prefectures.geojson',
+              './src/data/municipalities.geojson'
+            );
+            
+            loading = false;
+          } catch (error) {
+            console.error('Error initializing map:', error);
+            loading = false;
+          }
+        });
+        
+        // テーマ変更
+        function handleThemeChange(newTheme) {
+          theme = newTheme;
+          if (selector) {
+            selector.$set({ theme: newTheme });
+          }
+        }
+        
+        // 色分けモード変更
+        function handleColorModeChange(mode) {
+          colorMode = mode;
+          if (selector) {
+            selector.$set(colorModes[mode]);
+          }
+        }
+        
+        // 簡略化レベル変更
+        function handleSimplificationChange(level) {
+          simplificationLevel = level;
+          if (selector) {
+            selector.$set({ simplificationLevel: level });
+          }
+        }
+        
+        // ディフォルメモード変更
+        function handleDeformModeChange(mode) {
+          deformMode = mode;
+          if (selector) {
+            selector.setDeformMode(mode);
+          }
+        }
+        
+        // 東京都の離島表示切り替え
+        function handleToggleIslands() {
+          showIslands = !showIslands;
+          if (selector) {
+            selector.setShowTokyoIslands(showIslands);
+          }
+        }
+        
+        // リセット
+        function handleReset() {
+          if (selector) {
+            selector.reset();
+            selectedPrefecture = null;
+            selectedMunicipality = null;
+          }
+        }
+      <\/script>
+      
+      <div class="controls">
+        <button on:click={handleReset}>リセット</button>
+        
+        <!-- テーマ選択 -->
+        <label>
+          テーマ:
+          <select bind:value={theme} on:change={() => handleThemeChange(theme)}>
+            <option value="default">デフォルト</option>
+            <option value="dark">ダーク</option>
+            <option value="colorful">カラフル</option>
+          </select>
+        </label>
+        
+        <!-- 色分けモード -->
+        <label>
+          色分け:
+          <select bind:value={colorMode} on:change={() => handleColorModeChange(colorMode)}>
+            <option value="default">標準</option>
+            <option value="population">人口密度</option>
+            <option value="regions">地方別</option>
+          </select>
+        </label>
+        
+        <!-- 簡略化レベル -->
+        <button 
+          class:active={simplificationLevel === 0.1}
+          on:click={() => handleSimplificationChange(0.1)}
+        >
+          詳細
+        </button>
+        <button 
+          class:active={simplificationLevel === 0.5}
+          on:click={() => handleSimplificationChange(0.5)}
+        >
+          標準
+        </button>
+        <button 
+          class:active={simplificationLevel === 1.0}
+          on:click={() => handleSimplificationChange(1.0)}
+        >
+          簡略
+        </button>
+        
+        <!-- ディフォルメモード -->
+        <button 
+          class:active={deformMode === 'none'}
+          on:click={() => handleDeformModeChange('none')}
+        >
+          通常
+        </button>
+        <button 
+          class:active={deformMode === 'grid'}
+          on:click={() => handleDeformModeChange('grid')}
+        >
+          グリッド
+        </button>
+        <button 
+          class:active={deformMode === 'hexagon'}
+          on:click={() => handleDeformModeChange('hexagon')}
+        >
+          六角形
+        </button>
+        
+        <!-- 東京都の離島 -->
+        {#if selectedPrefecture?.code === '13'}
+          <button on:click={handleToggleIslands}>
+            {showIslands ? '離島を隠す' : '離島を表示'}
+          </button>
+        {/if}
+      </div>
+      
+      <div class="map-container" id="map-container">
+        {#if loading}
+          <div class="loading">地図データを読み込んでいます...</div>
+        {/if}
+      </div>
+      
+      <div class="info">
+        {#if selectedMunicipality}
+          <div>
+            <strong>選択中の市区町村:</strong> {selectedMunicipality.name}
+            <br />
+            <strong>都道府県:</strong> {selectedPrefecture.name}
+          </div>
+        {:else if selectedPrefecture}
+          <div>
+            <strong>選択中の都道府県:</strong> {selectedPrefecture.name}
+            <br />
+            <em>市区町村をクリックして選択してください</em>
+          </div>
+        {:else}
+          <div>都道府県をクリックして選択してください</div>
+        {/if}
+      </div>
+    `;
+    
+    // Svelteコンポーネントをコンパイル
+    const { code } = svelte.compile(AppCode, {
+      format: 'iife',
+      name: 'App'
+    });
+    
+    // コンパイルされたコードを実行
+    eval(code);
+    
+    // アプリケーションをマウント
+    new App({
+      target: document.getElementById('app')
+    });
+  </script>
+</body>
+</html>

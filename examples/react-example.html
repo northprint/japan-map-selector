@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Example - Japan Map Selector</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #f0f0f0;
+    }
+    
+    button.active {
+      background: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+    
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      border-left: 4px solid #007bff;
+    }
+    
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>React Example - 日本地図セレクター</h1>
+    <div id="root"></div>
+  </div>
+
+  <!-- React と ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Babel (JSX変換用) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+    
+    // JapanMapSelectorコンポーネント
+    function JapanMapExample() {
+      const [selector, setSelector] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [selectedPrefecture, setSelectedPrefecture] = useState(null);
+      const [selectedMunicipality, setSelectedMunicipality] = useState(null);
+      const [theme, setTheme] = useState('default');
+      const [showIslands, setShowIslands] = useState(false);
+      const [simplificationLevel, setSimplificationLevel] = useState(0.1);
+      const [deformMode, setDeformMode] = useState('none');
+      
+      // 初期化
+      useEffect(() => {
+        async function initialize() {
+          try {
+            // モジュールを動的にインポート
+            const module = await import('../dist/index.es.js');
+            const JapanMapSelectorReact = module.JapanMapSelectorReact;
+            
+            // セレクターのインスタンスを作成
+            const newSelector = new JapanMapSelectorReact({
+              width: 800,
+              height: 600,
+              theme: theme,
+              simplificationLevel: simplificationLevel,
+              showAttributionOnSVG: true
+            });
+            
+            // イベントリスナーの設定
+            newSelector.on('prefectureSelected', (prefecture) => {
+              setSelectedPrefecture(prefecture);
+              setSelectedMunicipality(null);
+            });
+            
+            newSelector.on('municipalitySelected', (municipality) => {
+              setSelectedMunicipality(municipality);
+            });
+            
+            // データの読み込み
+            await newSelector.initialize(
+              './src/data/prefectures.geojson',
+              './src/data/municipalities.geojson'
+            );
+            
+            setSelector(newSelector);
+            setLoading(false);
+          } catch (error) {
+            console.error('Error initializing map:', error);
+            setLoading(false);
+          }
+        }
+        
+        initialize();
+      }, []);
+      
+      // テーマ変更
+      const handleThemeChange = useCallback((newTheme) => {
+        setTheme(newTheme);
+        if (selector) {
+          selector.setTheme(newTheme);
+        }
+      }, [selector]);
+      
+      // 簡略化レベル変更
+      const handleSimplificationChange = useCallback((level) => {
+        setSimplificationLevel(level);
+        if (selector) {
+          selector.setSimplificationLevel(level);
+        }
+      }, [selector]);
+      
+      // ディフォルメモード変更
+      const handleDeformModeChange = useCallback((mode) => {
+        setDeformMode(mode);
+        if (selector) {
+          selector.setDeformMode(mode);
+        }
+      }, [selector]);
+      
+      // 東京都の離島表示切り替え
+      const handleToggleIslands = useCallback(() => {
+        const newValue = !showIslands;
+        setShowIslands(newValue);
+        if (selector) {
+          selector.setShowTokyoIslands(newValue);
+        }
+      }, [selector, showIslands]);
+      
+      // リセット
+      const handleReset = useCallback(() => {
+        if (selector) {
+          selector.reset();
+          setSelectedPrefecture(null);
+          setSelectedMunicipality(null);
+        }
+      }, [selector]);
+      
+      if (loading) {
+        return (
+          <div className="map-container">
+            <div className="loading">地図データを読み込んでいます...</div>
+          </div>
+        );
+      }
+      
+      return (
+        <div>
+          <div className="controls">
+            <button onClick={handleReset}>リセット</button>
+            
+            {/* テーマ選択 */}
+            <button 
+              className={theme === 'default' ? 'active' : ''}
+              onClick={() => handleThemeChange('default')}
+            >
+              デフォルト
+            </button>
+            <button 
+              className={theme === 'dark' ? 'active' : ''}
+              onClick={() => handleThemeChange('dark')}
+            >
+              ダーク
+            </button>
+            <button 
+              className={theme === 'colorful' ? 'active' : ''}
+              onClick={() => handleThemeChange('colorful')}
+            >
+              カラフル
+            </button>
+            
+            {/* 簡略化レベル */}
+            <button 
+              className={simplificationLevel === 0.1 ? 'active' : ''}
+              onClick={() => handleSimplificationChange(0.1)}
+            >
+              詳細
+            </button>
+            <button 
+              className={simplificationLevel === 0.5 ? 'active' : ''}
+              onClick={() => handleSimplificationChange(0.5)}
+            >
+              標準
+            </button>
+            <button 
+              className={simplificationLevel === 1.0 ? 'active' : ''}
+              onClick={() => handleSimplificationChange(1.0)}
+            >
+              簡略
+            </button>
+            
+            {/* ディフォルメモード */}
+            <button 
+              className={deformMode === 'none' ? 'active' : ''}
+              onClick={() => handleDeformModeChange('none')}
+            >
+              通常
+            </button>
+            <button 
+              className={deformMode === 'grid' ? 'active' : ''}
+              onClick={() => handleDeformModeChange('grid')}
+            >
+              グリッド
+            </button>
+            <button 
+              className={deformMode === 'hexagon' ? 'active' : ''}
+              onClick={() => handleDeformModeChange('hexagon')}
+            >
+              六角形
+            </button>
+            
+            {/* 東京都の離島 */}
+            {selectedPrefecture?.code === '13' && (
+              <button onClick={handleToggleIslands}>
+                {showIslands ? '離島を隠す' : '離島を表示'}
+              </button>
+            )}
+          </div>
+          
+          <div className="map-container">
+            {selector && (
+              <selector.Component />
+            )}
+          </div>
+          
+          <div className="info">
+            {selectedMunicipality ? (
+              <div>
+                <strong>選択中の市区町村:</strong> {selectedMunicipality.name}
+                <br />
+                <strong>都道府県:</strong> {selectedPrefecture.name}
+              </div>
+            ) : selectedPrefecture ? (
+              <div>
+                <strong>選択中の都道府県:</strong> {selectedPrefecture.name}
+                <br />
+                <em>市区町村をクリックして選択してください</em>
+              </div>
+            ) : (
+              <div>都道府県をクリックして選択してください</div>
+            )}
+          </div>
+        </div>
+      );
+    }
+    
+    // アプリケーションをレンダリング
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<JapanMapExample />);
+  </script>
+</body>
+</html>

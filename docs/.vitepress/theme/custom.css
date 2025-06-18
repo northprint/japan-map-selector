@@ -1,0 +1,70 @@
+/* カスタムCSS */
+:root {
+  --vp-c-brand: #4a90e2;
+  --vp-c-brand-light: #6ba3e8;
+  --vp-c-brand-lighter: #8cb8ee;
+  --vp-c-brand-dark: #3a7bc8;
+  --vp-c-brand-darker: #2a69b8;
+}
+
+/* デモコンテナのスタイル */
+.demo-container {
+  margin: 20px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.demo-controls {
+  background: var(--vp-c-bg-soft);
+  padding: 16px;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.demo-controls label {
+  margin-right: 16px;
+}
+
+.demo-controls select,
+.demo-controls button {
+  padding: 4px 8px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+  background: var(--vp-c-bg);
+}
+
+.demo-info {
+  background: var(--vp-c-bg-soft);
+  padding: 16px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-family: var(--vp-font-family-mono);
+  font-size: 14px;
+}
+
+/* コードブロックの改善 */
+.vp-doc div[class*='language-'] {
+  margin: 16px 0;
+}
+
+/* テーブルのスタイル */
+.vp-doc table {
+  margin: 20px 0;
+}
+
+/* 色見本のスタイル */
+.color-sample {
+  display: inline-block;
+  width: 100px;
+  height: 30px;
+  border: 1px solid var(--vp-c-divider);
+  margin: 5px;
+  vertical-align: middle;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .demo-container {
+    margin: 10px -24px;
+    border-radius: 0;
+  }
+}

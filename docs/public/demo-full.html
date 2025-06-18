@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Full Demo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .demo-controls {
+      background: #f6f6f7;
+      padding: 16px;
+      border-bottom: 1px solid #e2e2e3;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .demo-controls label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .demo-controls select {
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+    }
+    .demo-controls button {
+      padding: 4px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    .demo-controls button:hover {
+      background: #f0f0f0;
+    }
+    #map-demo {
+      width: 100%;
+      height: 600px;
+      background: white;
+    }
+    #map-demo svg {
+      width: 100%;
+      height: 100%;
+    }
+    .demo-info {
+      background: #f6f6f7;
+      padding: 16px;
+      border-top: 1px solid #e2e2e3;
+      font-size: 14px;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #666;
+    }
+    .error {
+      color: #d32f2f;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    /* 出典表示 */
+    .attribution {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 5px 10px;
+      font-size: 11px;
+      color: #666;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .attribution a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .attribution a:hover {
+      text-decoration: underline;
+    }
+    
+    /* 東京都離島切り替えボタン */
+    .tokyo-islands-toggle {
+      display: none;
+      margin-left: auto;
+      padding: 4px 12px;
+      background: #e3f2fd;
+      border: 1px solid #1976d2;
+      border-radius: 4px;
+      color: #1976d2;
+      cursor: pointer;
+    }
+    .tokyo-islands-toggle:hover {
+      background: #bbdefb;
+    }
+    .tokyo-islands-toggle.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-controls">
+    <label>テーマ: 
+      <select id="theme-select">
+        <option value="default">Default</option>
+        <option value="dark">Dark</option>
+        <option value="warm">Warm</option>
+        <option value="cool">Cool</option>
+        <option value="monochrome">Monochrome</option>
+        <option value="colorful" selected>Colorful</option>
+        <option value="random">Random</option>
+      </select>
+    </label>
+    
+    <label>簡略化レベル: 
+      <select id="simplification-select">
+        <option value="original">Original</option>
+        <option value="high">High</option>
+        <option value="medium" selected>Medium</option>
+        <option value="low">Low</option>
+        <option value="ultra-low">Ultra Low</option>
+      </select>
+    </label>
+    
+    <label>ディフォルメ: 
+      <select id="deform-select">
+        <option value="none" selected>なし</option>
+        <option value="grid">グリッド</option>
+        <option value="hexagon">六角形</option>
+      </select>
+    </label>
+    
+    <button id="reset-btn">リセット</button>
+    
+    <button id="tokyo-islands-btn" class="tokyo-islands-toggle">
+      東京都離島を表示
+    </button>
+  </div>
+  
+  <div id="map-demo" style="position: relative;">
+    <div class="loading">地図を読み込み中...</div>
+    <div class="attribution" style="display: none;">
+      地図データ：<a href="https://nlftp.mlit.go.jp/ksj/index.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成
+    </div>
+  </div>
+  
+  <div class="demo-info" id="demo-info">
+    マウスで地図を操作してください。クリックで都道府県を選択、ホイールでズーム、ドラッグで移動できます。
+  </div>
+
+  <script>
+    // 注意: このデモは実際のjapan-map-selectorライブラリを使用する想定です
+    // 本番環境では適切にライブラリをインポートしてください
+    
+    // デモ用の警告メッセージ
+    console.warn('このデモページは japan-map-selector ライブラリの実装例です。');
+    console.warn('実際の動作にはライブラリのインポートが必要です。');
+    
+    // プレースホルダーとしてサンプルメッセージを表示
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('map-demo');
+      container.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <h3>Japan Map Selector デモ</h3>
+          <p>このデモを実行するには、japan-map-selector ライブラリが必要です。</p>
+          <p>以下の手順で実装してください：</p>
+          <ol style="text-align: left; display: inline-block;">
+            <li>npm install japan-map-selector</li>
+            <li>import { JapanMapSelector } from 'japan-map-selector'</li>
+            <li>地理データ (GeoJSON) を準備</li>
+            <li>map.initialize() でデータを読み込み</li>
+          </ol>
+          <p style="margin-top: 20px;">
+            詳しい実装方法は
+            <a href="../guide/getting-started.html" target="_parent">Getting Started</a>
+            をご覧ください。
+          </p>
+        </div>
+      `;
+      
+      // 出典表示
+      document.querySelector('.attribution').style.display = 'block';
+    });
+    
+    // コントロールのイベントリスナー（デモ用）
+    document.getElementById('theme-select').addEventListener('change', (e) => {
+      console.log('テーマ変更:', e.target.value);
+    });
+    
+    document.getElementById('simplification-select').addEventListener('change', (e) => {
+      console.log('簡略化レベル変更:', e.target.value);
+    });
+    
+    document.getElementById('deform-select').addEventListener('change', (e) => {
+      console.log('ディフォルメモード変更:', e.target.value);
+    });
+    
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      console.log('リセット');
+      document.getElementById('demo-info').textContent = 
+        'マウスで地図を操作してください。クリックで都道府県を選択、ホイールでズーム、ドラッグで移動できます。';
+    });
+    
+    document.getElementById('tokyo-islands-btn').addEventListener('click', (e) => {
+      const btn = e.target;
+      const isShowing = btn.textContent.includes('非表示');
+      btn.textContent = isShowing ? '東京都離島を表示' : '東京都離島を非表示';
+      console.log('東京都離島切り替え:', !isShowing);
+    });
+  </script>
+
+  <!-- 
+  実際の実装例:
+  <script type="module">
+    import { JapanMapSelector } from 'japan-map-selector';
+    
+    const map = new JapanMapSelector({
+      width: 800,
+      height: 600,
+      theme: 'colorful',
+      simplificationLevel: 'medium',
+      showAttribution: true,
+      onPrefectureSelect: (prefecture) => {
+        console.log('都道府県選択:', prefecture);
+        document.getElementById('demo-info').textContent = 
+          `選択: ${prefecture.name} (${prefecture.code}) - 市区町村を選択してください`;
+          
+        // 東京都の場合は離島切り替えボタンを表示
+        const tokyoBtn = document.getElementById('tokyo-islands-btn');
+        if (prefecture.code === '13') {
+          tokyoBtn.classList.add('visible');
+        } else {
+          tokyoBtn.classList.remove('visible');
+        }
+      },
+      onMunicipalitySelect: (municipality) => {
+        console.log('市区町村選択:', municipality);
+        document.getElementById('demo-info').textContent = 
+          `選択: ${municipality.name} (${municipality.code})`;
+      }
+    });
+    
+    // 初期化
+    async function init() {
+      try {
+        await map.initialize(
+          '/data/municipality/geojson/s0010/prefectures-medium.json',
+          '/data/municipality/geojson/s0010/N03-21_210101-medium.json'
+        );
+        
+        render();
+      } catch (error) {
+        console.error('初期化エラー:', error);
+        showError('データの読み込みに失敗しました');
+      }
+    }
+    
+    function render() {
+      // 実際のレンダリング処理
+    }
+    
+    init();
+  </script>
+  -->
+</body>
+</html>

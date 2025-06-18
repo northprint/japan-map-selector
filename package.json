@@ -1,7 +1,7 @@
 {
   "name": "japan-map-selector",
   "version": "1.0.0",
-  "description": "日本地図の都道府県・市区町村選択コンポーネント",
+  "description": "Interactive Japan map selector component for selecting prefectures and municipalities",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -10,8 +10,20 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "type-check": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
   },
+  "files": [
+    "dist",
+    "src/data",
+    "README.md",
+    "LICENSE",
+    "ATTRIBUTION.md"
+  ],
   "keywords": [
     "japan",
     "map",
@@ -19,10 +31,22 @@
     "municipality",
     "react",
     "svelte",
-    "typescript"
+    "typescript",
+    "geojson",
+    "interactive-map",
+    "japan-map",
+    "visualization"
   ],
-  "author": "",
+  "author": "northprint",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/northprint/japan-map-selector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/northprint/japan-map-selector/issues"
+  },
+  "homepage": "https://github.com/northprint/japan-map-selector#readme",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -36,7 +60,8 @@
     "rollup-plugin-dts": "^6.1.0",
     "svelte": "^4.2.12",
     "tslib": "^2.6.2",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "vitepress": "^1.6.3"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

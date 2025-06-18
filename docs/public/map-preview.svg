@@ -1,0 +1,93 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景グラデーション -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f5f7fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9ecef;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- ドロップシャドウ -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.1"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="1200" height="800" fill="url(#bgGradient)"/>
+  
+  <!-- メインの地図コンテナ -->
+  <g transform="translate(100, 100)">
+    <rect width="1000" height="600" rx="8" fill="white" filter="url(#shadow)"/>
+    
+    <!-- タイトルバー -->
+    <rect width="1000" height="50" rx="8" fill="#4fc3f7"/>
+    <text x="20" y="32" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white">
+      Japan Map Selector
+    </text>
+    
+    <!-- 日本地図の簡易表現 -->
+    <g transform="translate(200, 150)">
+      <!-- 北海道 -->
+      <rect x="400" y="20" width="80" height="80" rx="10" fill="#96ceb4" stroke="#666" stroke-width="2"/>
+      <text x="440" y="65" text-anchor="middle" font-size="14" fill="#333">北海道</text>
+      
+      <!-- 本州 -->
+      <path d="M 300 120 L 500 120 L 480 300 L 320 300 Z" fill="#4ecdc4" stroke="#666" stroke-width="2"/>
+      
+      <!-- 東京（選択状態） -->
+      <rect x="380" y="200" width="60" height="40" rx="5" fill="#ff6b6b" stroke="#333" stroke-width="3"/>
+      <text x="410" y="225" text-anchor="middle" font-size="12" fill="white" font-weight="bold">東京</text>
+      
+      <!-- 九州 -->
+      <rect x="200" y="280" width="60" height="80" rx="10" fill="#45b7d1" stroke="#666" stroke-width="2"/>
+      
+      <!-- 四国 -->
+      <rect x="280" y="250" width="50" height="40" rx="8" fill="#f7b731" stroke="#666" stroke-width="2"/>
+      
+      <!-- 沖縄（別枠） -->
+      <g>
+        <rect x="50" y="350" width="80" height="60" rx="5" fill="none" stroke="#999" stroke-width="1" stroke-dasharray="5,3"/>
+        <rect x="60" y="370" width="30" height="20" rx="5" fill="#feca57" stroke="#666" stroke-width="2"/>
+        <text x="75" y="385" text-anchor="middle" font-size="10" fill="#333">沖縄</text>
+      </g>
+    </g>
+    
+    <!-- 情報パネル -->
+    <g transform="translate(650, 150)">
+      <rect width="280" height="300" rx="5" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1"/>
+      <text x="20" y="30" font-size="16" font-weight="bold" fill="#333">選択中：東京都</text>
+      <text x="20" y="60" font-size="14" fill="#666">23区・26市・5町・8村</text>
+      
+      <!-- グラフ風の要素 -->
+      <rect x="20" y="100" width="240" height="20" rx="10" fill="#e9ecef"/>
+      <rect x="20" y="100" width="180" height="20" rx="10" fill="#4fc3f7"/>
+      
+      <rect x="20" y="140" width="240" height="20" rx="10" fill="#e9ecef"/>
+      <rect x="20" y="140" width="120" height="20" rx="10" fill="#ff6b6b"/>
+      
+      <rect x="20" y="180" width="240" height="20" rx="10" fill="#e9ecef"/>
+      <rect x="20" y="180" width="200" height="20" rx="10" fill="#96ceb4"/>
+    </g>
+    
+    <!-- コントロール -->
+    <g transform="translate(50, 500)">
+      <rect width="120" height="35" rx="5" fill="#6c757d" stroke="none"/>
+      <text x="60" y="23" text-anchor="middle" font-size="14" fill="white">テーマ: カラフル</text>
+      
+      <rect x="140" y="0" width="80" height="35" rx="5" fill="#007bff" stroke="none"/>
+      <text x="180" y="23" text-anchor="middle" font-size="14" fill="white">リセット</text>
+    </g>
+  </g>
+  
+  <!-- ロゴ/ブランディング -->
+  <text x="600" y="750" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#6c757d" opacity="0.6">
+    Interactive Japan Map Component
+  </text>
+</svg>

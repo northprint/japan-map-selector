@@ -37,18 +37,49 @@ export interface Municipality {
   feature: GeoJSONFeature;
 }
 
+// カラーテーマの定義
+export interface ColorTheme {
+  name?: string;
+  prefectureFill: string;
+  prefectureStroke: string;
+  prefectureHoverFill: string;
+  prefectureSelectedFill: string;
+  municipalityFill: string;
+  municipalityStroke: string;
+  municipalityHoverFill: string;
+  municipalitySelectedFill: string;
+  backgroundColor: string;
+  strokeWidth: number;
+}
+
 // コンポーネントのプロパティ
 export interface JapanMapSelectorProps {
   onPrefectureSelect?: (prefecture: Prefecture) => void;
   onMunicipalitySelect?: (municipality: Municipality) => void;
   width?: number;
   height?: number;
+  theme?: ColorTheme | 'default' | 'dark' | 'warm' | 'cool' | 'monochrome' | 'colorful' | 'random';
+  // 個別のカラー設定（themeより優先）
   prefectureColor?: string;
   prefectureHoverColor?: string;
   municipalityColor?: string;
   municipalityHoverColor?: string;
   selectedPrefectureCode?: string;
   selectedMunicipalityCode?: string;
+  // クリック可能な都道府県を制限（未指定の場合は全て選択可能）
+  selectablePrefectures?: string[];
+  // 選択不可の都道府県の色
+  disabledPrefectureFill?: string;
+  disabledPrefectureStroke?: string;
+  // ポリゴンの簡略化レベル
+  simplificationLevel?: 'original' | 'high' | 'medium' | 'low' | 'ultra-low';
+  // 出典表示の設定
+  showAttribution?: boolean;
+  attributionOptions?: {
+    showLink?: boolean;
+    position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+    style?: any;
+  };
 }
 
 // 内部状態

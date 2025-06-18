@@ -4,7 +4,8 @@ import {
   JapanMapSelectorProps,
   MapState,
   Prefecture,
-  Municipality
+  Municipality,
+  ColorTheme
 } from '../types';
 import {
   loadPrefectureData,
@@ -18,6 +19,8 @@ import {
   ProjectionConfig
 } from './map-renderer';
 import { isTokyoIsland } from './tokyo-islands';
+import { getTheme, applyColorOverrides, getPrefectureFillColor, getMunicipalityFillColor, getMunicipalityHoverFillColor } from './themes';
+import { GridDeformer, HexagonalGridDeformer } from './grid-deformer';
 
 export class JapanMapSelector {
   private prefectures: Prefecture[] = [];
@@ -26,17 +29,26 @@ export class JapanMapSelector {
   private listeners: Map<string, Function[]> = new Map();
   private props: JapanMapSelectorProps;
   private currentProjection: ProjectionConfig;
+  private theme: ColorTheme;
+  private currentThemeName: string = 'default';
+  private deformer: GridDeformer | null = null;
+  private deformMode: 'none' | 'grid' | 'hexagon' = 'none';
 
   constructor(props: JapanMapSelectorProps = {}) {
     this.props = {
       width: 800,
       height: 600,
-      prefectureColor: '#e0e0e0',
-      prefectureHoverColor: '#c0c0c0',
-      municipalityColor: '#f0f0f0',
-      municipalityHoverColor: '#d0d0d0',
       ...props
     };
+    
+    // テーマの設定
+    this.theme = applyColorOverrides(
+      getTheme(props.theme),
+      props
+    );
+    if (typeof props.theme === 'string') {
+      this.currentThemeName = props.theme;
+    }
 
     this.currentProjection = getDefaultProjection();
     this.state = {
@@ -83,6 +95,13 @@ export class JapanMapSelector {
           maxLng = Math.max(maxLng, Math.min(east, 142.0));
           minLat = Math.min(minLat, Math.max(south, 34.5)); // 伊豆諸島の一部も除外
           maxLat = Math.max(maxLat, north);
+        } else if (pref.name === '北海道') {
+          // 北海道の場合、北方領土を除外した実際の範囲を使用
+          // 北海道本土は概ね東経139.5度〜145.5度の範囲
+          minLng = Math.min(minLng, Math.max(west, 139.5)); // 西側の実際の境界
+          maxLng = Math.max(maxLng, Math.min(east, 145.5)); // 東経145.5度以西（北方領土除外）
+          minLat = Math.min(minLat, south);
+          maxLat = Math.max(maxLat, north);
         } else {
           minLng = Math.min(minLng, west);
           maxLng = Math.max(maxLng, east);
@@ -98,15 +117,15 @@ export class JapanMapSelector {
     const height = maxLat - minLat;
     
     // パディングを考慮してスケールを計算
-    const padding = 40; // パディングを少し増やして端が切れないようにする
+    const padding = 40; // パディングを調整
     const scaleX = (this.props.width! - 2 * padding) / width;
     const scaleY = (this.props.height! - 2 * padding) / height;
-    const scale = Math.min(scaleX, scaleY) * 1.1; // スケールを10%大きくする（20%は大きすぎたので調整）
+    const scale = Math.min(scaleX, scaleY) * 1.0; // 通常のスケール
     
     return {
       scale,
-      translateX: this.props.width! / 2,
-      translateY: this.props.height! / 2,
+      translateX: this.props.width! / 2, // 中央に配置
+      translateY: this.props.height! / 2 - 20, // 少し上にずらして沖縄枠のスペースを作る
       center: [centerLng, centerLat]
     };
   }
@@ -131,25 +150,71 @@ export class JapanMapSelector {
   }
 
   // イベントの発火
-  private emit(event: string, data?: any) {
+  emit(event: string, data?: any) {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.forEach(listener => listener(data));
     }
   }
 
+  // 都道府県が選択可能かチェック
+  isPrefectureSelectable(prefectureCode: string): boolean {
+    if (!this.props.selectablePrefectures || this.props.selectablePrefectures.length === 0) {
+      return true; // 未指定の場合は全て選択可能
+    }
+    return this.props.selectablePrefectures.includes(prefectureCode);
+  }
+  
   // 都道府県の選択
   selectPrefecture(prefectureCode: string) {
+    // 選択可能かチェック
+    if (!this.isPrefectureSelectable(prefectureCode)) {
+      return;
+    }
+    
     const prefecture = this.prefectures.find(p => p.code === prefectureCode);
     if (prefecture) {
       this.state.selectedPrefecture = prefecture;
       this.state.showTokyoIslands = false; // 離島表示をリセット
       
-      // 東京都の場合は本土の境界を使用
+      // 東京都・北海道の場合は本土の境界を使用
       let bounds = prefecture.bounds;
       if (prefectureCode === '13') {
         // 東京都本土の境界（23区周辺）
         bounds = [[138.5, 35.3], [140.0, 36.0]];
+      } else if (prefectureCode === '01') {
+        // 北海道本土の境界（北方領土を除外）
+        // 北海道の実際の市区町村データから正確な境界を計算
+        const hokkaidoMunicipalities = this.municipalities.filter(m => m.prefectureCode === '01');
+        let actualMinLng = Infinity, actualMaxLng = -Infinity;
+        let actualMinLat = Infinity, actualMaxLat = -Infinity;
+        
+        hokkaidoMunicipalities.forEach(municipality => {
+          const geometry = municipality.feature.geometry;
+          const updateBounds = (coord: number[]) => {
+            const [lng, lat] = coord;
+            // 北方領土の座標を除外
+            if (lng < 145.5) {
+              actualMinLng = Math.min(actualMinLng, lng);
+              actualMaxLng = Math.max(actualMaxLng, lng);
+              actualMinLat = Math.min(actualMinLat, lat);
+              actualMaxLat = Math.max(actualMaxLat, lat);
+            }
+          };
+          
+          if (geometry.type === 'Polygon') {
+            (geometry.coordinates as number[][][]).forEach(ring => 
+              ring.forEach(updateBounds)
+            );
+          } else if (geometry.type === 'MultiPolygon') {
+            (geometry.coordinates as number[][][][]).forEach(polygon =>
+              polygon.forEach(ring => ring.forEach(updateBounds))
+            );
+          }
+        });
+        
+        // 計算された実際の境界を使用
+        bounds = [[actualMinLng, actualMinLat], [actualMaxLng, actualMaxLat]];
       }
       
       // ビューボックスを都道府県に合わせて調整
@@ -202,17 +267,62 @@ export class JapanMapSelector {
       });
     }
     
+    // 北海道の場合、北方領土の市区町村を除外
+    if (this.state.selectedPrefecture.code === '01') {
+      return allMunicipalities.filter(m => {
+        // 市区町村の座標から北方領土かどうか判定
+        if (m.feature.geometry.type === 'MultiPolygon') {
+          const coordinates = m.feature.geometry.coordinates as number[][][][];
+          // 最初のポリゴンの中心点をチェック
+          if (coordinates.length > 0 && coordinates[0].length > 0) {
+            const ring = coordinates[0][0];
+            let sumLng = 0, sumLat = 0;
+            ring.forEach(coord => {
+              sumLng += coord[0];
+              sumLat += coord[1];
+            });
+            const centerLng = sumLng / ring.length;
+            const centerLat = sumLat / ring.length;
+            // 北方領土の市区町村を除外
+            return !(centerLat > 43.5 && centerLng > 145.5);
+          }
+        } else if (m.feature.geometry.type === 'Polygon') {
+          const coordinates = m.feature.geometry.coordinates as number[][][];
+          if (coordinates.length > 0) {
+            const ring = coordinates[0];
+            let sumLng = 0, sumLat = 0;
+            ring.forEach(coord => {
+              sumLng += coord[0];
+              sumLat += coord[1];
+            });
+            const centerLng = sumLng / ring.length;
+            const centerLat = sumLat / ring.length;
+            // 北方領土の市区町村を除外
+            return !(centerLat > 43.5 && centerLng > 145.5);
+          }
+        }
+        return true;
+      });
+    }
+    
     return allMunicipalities;
   }
 
   // 都道府県のSVGパスを生成
   getPrefecturePath(prefecture: Prefecture): string {
+    // ディフォルメを適用
+    const deformed = this.getDeformedPrefecture(prefecture);
+    
     // 全国表示の時
     if (!this.state.selectedPrefecture) {
-      let geometry = prefecture.feature.geometry;
+      let geometry = deformed.feature.geometry;
       
       // 離島を含む都道府県の本土部分のみを表示
       switch (prefecture.name) {
+        case '北海道':
+          // 北方領土を除外
+          geometry = this.filterHokkaidoMainland(geometry);
+          break;
         case '東京都':
           // 東京都の離島を除外（特定の離島のみを除外する）
           geometry = this.filterTokyoMainlandOnly(geometry);
@@ -222,7 +332,7 @@ export class JapanMapSelector {
           geometry = this.filterGeometryByLatitude(geometry, 30.0, 'north');
           break;
         case '長崎県':
-          // 長崎県の離島を簡易的にフィルタリング（五島列島などを除外）
+          // 長崎県の離島を簡易的にフィルタリング（五島列島などを除妖）
           geometry = this.filterGeometryByBounds(geometry, [[129.0, 32.5], [130.0, 34.0]]);
           break;
         // case '新潟県':
@@ -235,11 +345,16 @@ export class JapanMapSelector {
           break;
         case '沖縄県':
           // 沖縄県は特別な投影設定で表示
+          // 沖縄県の実際の境界を使用して中心を計算
+          const [[west, south], [east, north]] = prefecture.bounds;
+          const okinawaCenterLng = (west + east) / 2;
+          const okinawaCenterLat = (south + north) / 2;
+          
           const okinawaProjection: ProjectionConfig = {
-            scale: this.currentProjection.scale * 2, // 拡大
-            translateX: 100, // 左上に配置（左に寄せる）
-            translateY: 80,  // 上に寄せる
-            center: [127.7, 26.3] // 沖縄の中心
+            scale: this.currentProjection.scale * 0.7, // 適度に小さくして枠内に収める
+            translateX: 210, // 枠の中央に配置（枠x:120 + 幅180/2）
+            translateY: 120,  // 枠の中央に配置（枠y:50 + 高さ140/2）
+            center: [okinawaCenterLng, okinawaCenterLat] // 動的に計算した中心
           };
           return geometryToPath(geometry, okinawaProjection);
       }
@@ -247,7 +362,7 @@ export class JapanMapSelector {
       return geometryToPath(geometry, this.currentProjection);
     }
     
-    return geometryToPath(prefecture.feature.geometry, this.currentProjection);
+    return geometryToPath(deformed.feature.geometry, this.currentProjection);
   }
   
   // 東京都の本土のみを残すフィルタリング
@@ -277,7 +392,6 @@ export class JapanMapSelector {
         return isMainland;
       });
       
-      console.log(`Tokyo: Filtered to ${filteredCoordinates.length} polygons`);
       
       return {
         type: 'MultiPolygon',
@@ -304,7 +418,6 @@ export class JapanMapSelector {
         return allPointsMatch;
       });
       
-      console.log(`Filtered ${originalCount} to ${filteredCoordinates.length} polygons (threshold: ${threshold})`);
       
       return {
         type: 'MultiPolygon',
@@ -361,31 +474,49 @@ export class JapanMapSelector {
     return geometry;
   }
   
+  // 北海道の本土のみを残すフィルタリング（北方領土を除外）
+  private filterHokkaidoMainland(
+    geometry: Prefecture['feature']['geometry']
+  ): Prefecture['feature']['geometry'] {
+    if (geometry.type === 'MultiPolygon') {
+      const filteredCoordinates = (geometry.coordinates as number[][][][]).filter(polygon => {
+        // ポリゴンの中心点を計算
+        const ring = polygon[0];
+        let sumLng = 0, sumLat = 0;
+        ring.forEach((coord: number[]) => {
+          sumLng += coord[0];
+          sumLat += coord[1];
+        });
+        const centerLng = sumLng / ring.length;
+        const centerLat = sumLat / ring.length;
+        
+        // 北方領土を除外する条件
+        // 緯度43.5度以北かつ東経145.5度以東の領域を除外
+        const isMainland = !(centerLat > 43.5 && centerLng > 145.5);
+        
+        return isMainland;
+      });
+      
+      
+      return {
+        type: 'MultiPolygon',
+        coordinates: filteredCoordinates
+      };
+    }
+    return geometry;
+  }
+  
   // 沖縄県の枠を取得
   getOkinawaFrame(): { x: number; y: number; width: number; height: number } | null {
     const okinawa = this.prefectures.find(p => p.name === '沖縄県');
     if (!okinawa) return null;
     
-    // 沖縄県の境界から枠のサイズを計算
-    const [[west, south], [east, north]] = okinawa.bounds;
-    const okinawaProjection: ProjectionConfig = {
-      scale: this.currentProjection.scale * 2,
-      translateX: 100, // 左に寄せる
-      translateY: 80,  // 上に寄せる
-      center: [127.7, 26.3]
-    };
-    
-    // 境界の4隅を投影
-    const topLeft = this.projectPoint(west, north, okinawaProjection);
-    const bottomRight = this.projectPoint(east, south, okinawaProjection);
-    
-    const padding = 20; // パディングを増やす
-    const margin = 10; // 枠の外側のマージン
+    // 固定サイズの枠を返す
     return {
-      x: topLeft[0] - padding - margin,
-      y: topLeft[1] - padding - margin - 15, // ラベル用のスペースを追加
-      width: bottomRight[0] - topLeft[0] + 2 * padding,
-      height: bottomRight[1] - topLeft[1] + 2 * padding + 15 // ラベル用のスペースを追加
+      x: 120,  // 九州の左端と同じ位置に配置
+      y: 50,  // 北海道の上端と同じくらいの高さに配置
+      width: 180,  // 幅を調整
+      height: 140  // 高さを調整
     };
   }
   
@@ -398,8 +529,10 @@ export class JapanMapSelector {
 
   // 市区町村のSVGパスを生成
   getMunicipalityPath(municipality: Municipality): string {
+    // ディフォルメを適用
+    const deformed = this.getDeformedMunicipality(municipality);
     // 選択された都道府県のビューで市区町村を表示
-    return geometryToPath(municipality.feature.geometry, this.currentProjection);
+    return geometryToPath(deformed.feature.geometry, this.currentProjection);
   }
 
   // 都道府県のホバー
@@ -407,8 +540,13 @@ export class JapanMapSelector {
     const previousHovered = this.state.hoveredPrefecture;
     
     if (prefectureCode) {
-      const prefecture = this.prefectures.find(p => p.code === prefectureCode);
-      this.state.hoveredPrefecture = prefecture || null;
+      // 選択不可の場合はホバーしない
+      if (!this.isPrefectureSelectable(prefectureCode)) {
+        this.state.hoveredPrefecture = null;
+      } else {
+        const prefecture = this.prefectures.find(p => p.code === prefectureCode);
+        this.state.hoveredPrefecture = prefecture || null;
+      }
     } else {
       this.state.hoveredPrefecture = null;
     }
@@ -477,5 +615,89 @@ export class JapanMapSelector {
   // プロパティを取得
   getProps(): JapanMapSelectorProps {
     return { ...this.props };
+  }
+  
+  // 現在のテーマを取得
+  getTheme(): ColorTheme {
+    return { ...this.theme };
+  }
+  
+  // テーマを変更
+  setTheme(themeNameOrObject: ColorTheme | string) {
+    this.theme = applyColorOverrides(
+      getTheme(themeNameOrObject),
+      this.props
+    );
+    // テーマ名を保存（カラフル/ランダムテーマ用）
+    if (typeof themeNameOrObject === 'string') {
+      this.currentThemeName = themeNameOrObject;
+    }
+    this.emit('themeChanged', this.theme);
+    this.emit('stateChanged', this.state);
+  }
+
+  // ディフォルメモードの設定
+  setDeformMode(mode: 'none' | 'grid' | 'hexagon', gridSize: number = 0.1) {
+    this.deformMode = mode;
+    
+    if (mode === 'none') {
+      this.deformer = null;
+    } else if (mode === 'grid') {
+      this.deformer = new GridDeformer({ gridSize, preserveTopology: true });
+    } else if (mode === 'hexagon') {
+      this.deformer = new HexagonalGridDeformer({ gridSize, preserveTopology: true });
+    }
+    
+    this.emit('stateChanged', this.state);
+  }
+
+  // ディフォルメされた都道府県データを取得
+  private getDeformedPrefecture(prefecture: Prefecture): Prefecture {
+    if (!this.deformer) return prefecture;
+    return this.deformer.deformPrefecture(prefecture);
+  }
+
+  // ディフォルメされた市区町村データを取得
+  private getDeformedMunicipality(municipality: Municipality): Municipality {
+    if (!this.deformer) return municipality;
+    return this.deformer.deformMunicipality(municipality);
+  }
+  
+  // 都道府県の塗りつぶし色を取得（テーマによって異なる）
+  getPrefectureFillColor(prefecture: Prefecture): string {
+    // 選択不可の場合
+    if (!this.isPrefectureSelectable(prefecture.code)) {
+      return this.props.disabledPrefectureFill || '#cccccc';
+    }
+    
+    if (this.currentThemeName === 'colorful' || this.currentThemeName === 'random') {
+      return getPrefectureFillColor(prefecture.code, this.currentThemeName);
+    }
+    return this.theme.prefectureFill;
+  }
+  
+  // 都道府県の枠線色を取得
+  getPrefectureStrokeColor(prefecture: Prefecture): string {
+    // 選択不可の場合
+    if (!this.isPrefectureSelectable(prefecture.code)) {
+      return this.props.disabledPrefectureStroke || '#999999';
+    }
+    return this.theme.prefectureStroke;
+  }
+  
+  // 市区町村の塗りつぶし色を取得（テーマによって異なる）
+  getMunicipalityFillColor(municipality: Municipality): string {
+    if (this.currentThemeName === 'colorful' || this.currentThemeName === 'random') {
+      return getMunicipalityFillColor(municipality.code, municipality.prefectureCode, this.currentThemeName);
+    }
+    return this.theme.municipalityFill;
+  }
+  
+  // 市区町村のホバー色を取得（テーマによって異なる）
+  getMunicipalityHoverFillColor(municipality: Municipality): string {
+    if (this.currentThemeName === 'colorful' || this.currentThemeName === 'random') {
+      return getMunicipalityHoverFillColor(municipality.code, municipality.prefectureCode, this.currentThemeName);
+    }
+    return this.theme.municipalityHoverFill;
   }
 }

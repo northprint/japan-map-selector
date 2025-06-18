@@ -1,0 +1,36 @@
+# Source files
+src/**/*.test.ts
+src/**/*.spec.ts
+
+# Development files
+demo.html
+examples/
+docs/
+.vitepress/
+screenshot-demo.html
+
+# Build files
+rollup.config.js
+tsconfig.json
+.eslintrc.json
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+.DS_Store
+node_modules/
+coverage/
+.tmp/
+
+# Documentation source
+*.md
+!README.md
+!ATTRIBUTION.md
+!LICENSE

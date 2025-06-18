@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Screenshot Demo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      padding: 0;
+      overflow: hidden;
+      width: 1200px;
+      max-width: 95vw;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    
+    .header .subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    
+    .controls {
+      background: #f8f9fa;
+      padding: 20px 32px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .control-group label {
+      font-size: 12px;
+      color: #6c757d;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .control-group select,
+    .control-group button {
+      padding: 8px 16px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .control-group select:hover,
+    .control-group button:hover {
+      border-color: #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .main-content {
+      display: flex;
+      height: 600px;
+    }
+    
+    #map-container {
+      flex: 1;
+      background: #fff;
+      position: relative;
+    }
+    
+    #map-container svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .info-panel {
+      width: 320px;
+      background: #f8f9fa;
+      padding: 24px;
+      border-left: 1px solid #e9ecef;
+    }
+    
+    .info-panel h2 {
+      margin: 0 0 16px 0;
+      font-size: 20px;
+      color: #212529;
+    }
+    
+    .info-item {
+      margin-bottom: 16px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .info-item .label {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 4px;
+    }
+    
+    .info-item .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #212529;
+    }
+    
+    .demo-map {
+      width: 100%;
+      height: 100%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    
+    /* 日本地図のモックアップ */
+    .japan-mock {
+      width: 600px;
+      height: 500px;
+      position: relative;
+    }
+    
+    .prefecture {
+      position: absolute;
+      background: #4ecdc4;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .prefecture:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+    }
+    
+    /* 各地域の配置とサイズ */
+    .hokkaido {
+      top: 20px;
+      right: 100px;
+      width: 120px;
+      height: 100px;
+      background: #96ceb4;
+    }
+    
+    .tohoku {
+      top: 120px;
+      right: 150px;
+      width: 80px;
+      height: 120px;
+      background: #45b7d1;
+    }
+    
+    .kanto {
+      top: 260px;
+      right: 130px;
+      width: 100px;
+      height: 80px;
+      background: #ff6b6b;
+    }
+    
+    .chubu {
+      top: 220px;
+      right: 240px;
+      width: 100px;
+      height: 100px;
+      background: #f7b731;
+    }
+    
+    .kansai {
+      top: 280px;
+      left: 240px;
+      width: 90px;
+      height: 70px;
+      background: #5f27cd;
+    }
+    
+    .chugoku {
+      top: 260px;
+      left: 120px;
+      width: 100px;
+      height: 60px;
+      background: #00d2d3;
+    }
+    
+    .shikoku {
+      top: 340px;
+      left: 200px;
+      width: 80px;
+      height: 50px;
+      background: #ff9ff3;
+    }
+    
+    .kyushu {
+      top: 350px;
+      left: 60px;
+      width: 90px;
+      height: 100px;
+      background: #54a0ff;
+    }
+    
+    .okinawa-frame {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 140px;
+      height: 100px;
+      border: 2px dashed #999;
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .okinawa {
+      width: 60px;
+      height: 40px;
+      background: #feca57;
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+    }
+    
+    .okinawa-label {
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .selected {
+      background: #ee5a6f !important;
+      transform: scale(1.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      z-index: 20;
+    }
+    
+    .attribution {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 11px;
+      color: #666;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 6px 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .attribution a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>Japan Map Selector</h1>
+        <div class="subtitle">インタラクティブな日本地図コンポーネント</div>
+      </div>
+      <div style="opacity: 0.8; font-size: 14px;">
+        v1.0.0
+      </div>
+    </div>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label>テーマ</label>
+        <select id="theme-select">
+          <option value="colorful" selected>Colorful</option>
+          <option value="default">Default</option>
+          <option value="dark">Dark</option>
+          <option value="warm">Warm</option>
+          <option value="cool">Cool</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>簡略化レベル</label>
+        <select id="simplification-select">
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>ディフォルメ</label>
+        <select id="deform-select">
+          <option value="none" selected>なし</option>
+          <option value="grid">グリッド</option>
+          <option value="hexagon">六角形</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label>アクション</label>
+        <button id="reset-btn">リセット</button>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div id="map-container">
+        <div class="demo-map">
+          <div class="japan-mock">
+            <!-- 北海道 -->
+            <div class="prefecture hokkaido">北海道</div>
+            
+            <!-- 東北 -->
+            <div class="prefecture tohoku">東北</div>
+            
+            <!-- 関東 -->
+            <div class="prefecture kanto selected">関東</div>
+            
+            <!-- 中部 -->
+            <div class="prefecture chubu">中部</div>
+            
+            <!-- 関西 -->
+            <div class="prefecture kansai">関西</div>
+            
+            <!-- 中国 -->
+            <div class="prefecture chugoku">中国</div>
+            
+            <!-- 四国 -->
+            <div class="prefecture shikoku">四国</div>
+            
+            <!-- 九州 -->
+            <div class="prefecture kyushu">九州</div>
+            
+            <!-- 沖縄 -->
+            <div class="okinawa-frame">
+              <div class="okinawa-label">沖縄県</div>
+              <div class="prefecture okinawa">沖縄</div>
+            </div>
+          </div>
+          
+          <div class="attribution">
+            地図データ：<a href="https://nlftp.mlit.go.jp/ksj/index.html" target="_blank">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成
+          </div>
+        </div>
+      </div>
+      
+      <div class="info-panel">
+        <h2>選択中の地域</h2>
+        
+        <div class="info-item">
+          <div class="label">地域名</div>
+          <div class="value">関東地方</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">都道府県数</div>
+          <div class="value">7都県</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">主要都市</div>
+          <div class="value">東京・横浜・千葉・さいたま</div>
+        </div>
+        
+        <div style="margin-top: 24px; padding: 16px; background: #e7f3ff; border-radius: 8px; border: 1px solid #b3d9ff;">
+          <div style="font-size: 14px; color: #0066cc; margin-bottom: 8px; font-weight: 600;">
+            💡 使い方のヒント
+          </div>
+          <div style="font-size: 13px; color: #333; line-height: 1.6;">
+            地域をクリックすると、その地域の都道府県が表示されます。さらに都道府県をクリックすると市区町村レベルまでドリルダウンできます。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // デモ用のインタラクション
+    document.querySelectorAll('.prefecture').forEach(el => {
+      el.addEventListener('click', function() {
+        document.querySelectorAll('.prefecture').forEach(p => p.classList.remove('selected'));
+        this.classList.add('selected');
+        
+        // 情報パネルを更新
+        const regionName = this.textContent;
+        document.querySelector('.info-item .value').textContent = regionName + '地方';
+      });
+    });
+  </script>
+</body>
+</html>
