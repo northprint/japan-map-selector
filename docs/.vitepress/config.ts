@@ -77,7 +77,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yourusername/japan-map-selector' }
+      { icon: 'github', link: 'https://github.com/northprint/japan-map-selector' }
     ],
 
     footer: {
