@@ -414,11 +414,20 @@
         this.state.selectedPrefecture = prefecture;
         if (prefecture) {
           const bounds = this.calculateBounds(prefecture.features);
-          const padding = 50;
+          const padding = 30;  // パディングを減らしてより大きく表示
           // 初期のアスペクト比を維持（800:600）
           const aspectRatio = 800 / 600;
           let width = bounds.width + padding * 2;
           let height = bounds.height + padding * 2;
+          
+          // 最小サイズを設定してより大きく表示
+          const minSize = 200;
+          if (width < minSize) {
+            width = minSize;
+          }
+          if (height < minSize / aspectRatio) {
+            height = minSize / aspectRatio;
+          }
           
           // アスペクト比を調整
           if (width / height > aspectRatio) {
@@ -694,15 +703,23 @@
         // 都道府県を描画
         const prefectures = selector.getPrefectures();
         prefectures.forEach(prefecture => {
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', selector.getPrefecturePath(prefecture));
           path.setAttribute('fill', selector.getPrefectureFillColor(prefecture));
           path.setAttribute('stroke', theme.prefectureStroke);
           path.setAttribute('stroke-width', '0.5');
           path.style.cursor = 'pointer';
+          path.style.transition = 'fill 0.2s ease';
 
           path.addEventListener('mouseenter', () => {
-            path.setAttribute('fill', theme.prefectureHoverFill);
+            // カラフルテーマの場合はホバー色を少し明るく
+            if (theme.prefectureFill === '#various') {
+              const currentColor = selector.getPrefectureFillColor(prefecture);
+              path.setAttribute('fill', adjustBrightness(currentColor, 1.2));
+            } else {
+              path.setAttribute('fill', theme.prefectureHoverFill);
+            }
             hoverInfo.textContent = prefecture.name;
             hoverInfo.style.display = 'block';
           });
@@ -718,7 +735,8 @@
             }
           });
 
-          svg.appendChild(path);
+          g.appendChild(path);
+          svg.appendChild(g);
         });
       } else {
         // 市区町村を描画
@@ -755,6 +773,7 @@
           path.setAttribute('stroke', theme.municipalityStroke);
           path.setAttribute('stroke-width', '0.5');
           path.style.cursor = 'pointer';
+          path.style.transition = 'fill 0.2s ease';
 
           path.addEventListener('mouseenter', () => {
             path.setAttribute('fill', theme.municipalityHoverFill);
@@ -799,6 +818,20 @@
       const newY = cy - newHeight / 2;
       
       updateViewBox([newX, newY, newWidth, newHeight]);
+    }
+
+    // 色の明度を調整する関数
+    function adjustBrightness(color, factor) {
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      
+      const newR = Math.min(255, Math.floor(r * factor));
+      const newG = Math.min(255, Math.floor(g * factor));
+      const newB = Math.min(255, Math.floor(b * factor));
+      
+      return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
     }
 
     // イベントリスナー
