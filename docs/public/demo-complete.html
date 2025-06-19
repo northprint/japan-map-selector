@@ -470,10 +470,9 @@
             // 沖縄県の特別処理
             if (isOkinawa) {
               // 沖縄県を左上の枠内に配置
-              const okinawaOffsetX = -450;
-              const okinawaOffsetY = 180;
-              x = (x + okinawaOffsetX) * 2 + 150;
-              y = (y + okinawaOffsetY) * 2 + 110;
+              // 元の座標を枠の中心に移動してスケール調整
+              x = (x - 400) * 2 + 150;
+              y = (y - 100) * 2 + 110;
             }
             
             pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
