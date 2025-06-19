@@ -644,17 +644,35 @@
       
       getMunicipalityFillColor(municipality) {
         if (this.currentTheme.prefectureFill === '#various') {
-          // カラフルテーマの場合、市区町村も色分け
+          // カラフルテーマの場合、所属する都道府県の色をベースに明度を調整
+          const prefectureCode = municipality.prefectureCode || '00';
           const colors = [
-            '#ffb3ba', '#bae1ff', '#baffc9', '#ffffba', '#ffdfba',
-            '#e0bbe4', '#ffd1dc', '#c9c9ff', '#bffcc6', '#ffc9de'
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57',
+            '#ff9ff3', '#54a0ff', '#48dbfb', '#00d2d3', '#1dd1a1'
           ];
-          // 市区町村コードの下3桁を使ってインデックスを計算
+          const prefIndex = parseInt(prefectureCode) % colors.length;
+          const baseColor = colors[prefIndex];
+          
+          // 市区町村ごとに明度を少し変える（80%〜120%の範囲）
           const code = municipality.code || '000';
-          const index = parseInt(code.substring(code.length - 3)) % colors.length;
-          return colors[index];
+          const variation = 0.8 + (parseInt(code.substring(code.length - 3)) % 5) * 0.1;
+          
+          return this.adjustBrightness(baseColor, variation);
         }
         return this.currentTheme.municipalityFill;
+      }
+      
+      adjustBrightness(color, factor) {
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        const newR = Math.min(255, Math.floor(r * factor));
+        const newG = Math.min(255, Math.floor(g * factor));
+        const newB = Math.min(255, Math.floor(b * factor));
+        
+        return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
       }
     }
 
