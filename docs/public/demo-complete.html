@@ -414,14 +414,17 @@
         this.state.selectedPrefecture = prefecture;
         if (prefecture) {
           const bounds = this.calculateBounds(prefecture.features);
-          const padding = 20;  // さらにパディングを減らしてより大きく表示
+          const padding = 10;  // パディングを小さくしてより大きく表示
           // 初期のアスペクト比を維持（800:600）
           const aspectRatio = 800 / 600;
-          let width = bounds.width + padding * 2;
-          let height = bounds.height + padding * 2;
           
-          // 最小サイズを設定してより大きく表示
-          const minSize = 300;  // 200から300に増加
+          // スケール係数を大きくして拡大表示
+          const scaleFactor = 0.6;  // 60%のサイズで表示（より大きく）
+          let width = (bounds.width + padding * 2) * scaleFactor;
+          let height = (bounds.height + padding * 2) * scaleFactor;
+          
+          // 最小サイズを設定
+          const minSize = 150;
           if (width < minSize) {
             width = minSize;
           }
@@ -511,8 +514,8 @@
       geometryToPath(geometry, prefecture = null, selectedPrefecture = null) {
         let pathData = '';
         
-        // 北海道の北方領土フィルタリング
-        if (prefecture && prefecture.name === '北海道') {
+        // 北海道の北方領土フィルタリング（都道府県表示時のみ）
+        if (prefecture && prefecture.name === '北海道' && !selectedPrefecture) {
           if (geometry.type === 'MultiPolygon') {
             const filteredCoords = geometry.coordinates.filter(polygon => {
               const ring = polygon[0];
@@ -557,24 +560,8 @@
       }
       
       getPrefectureProjection(prefecture) {
-        // 都道府県選択時の投影設定を計算
-        const bounds = this.calculateBounds(prefecture.features);
-        const padding = 20;  // さらに小さくして拡大
-        const width = bounds.width + padding * 2;
-        const height = bounds.height + padding * 2;
-        
-        // より大きなスケールで表示
-        const scale = Math.min(
-          700 / width,  // 800から700に変更してより大きく
-          500 / height  // 600から500に変更してより大きく
-        );
-        
-        return {
-          scale: scale,
-          translateX: 400,
-          translateY: 300,
-          center: this.currentProjection.center
-        };
+        // 市区町村表示時は現在の投影設定をそのまま使用
+        return this.currentProjection;
       }
       
       geometryToPathWithProjection(geometry, projection) {
