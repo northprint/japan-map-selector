@@ -641,6 +641,21 @@
         }
         return this.currentTheme.prefectureFill;
       }
+      
+      getMunicipalityFillColor(municipality) {
+        if (this.currentTheme.prefectureFill === '#various') {
+          // カラフルテーマの場合、市区町村も色分け
+          const colors = [
+            '#ffb3ba', '#bae1ff', '#baffc9', '#ffffba', '#ffdfba',
+            '#e0bbe4', '#ffd1dc', '#c9c9ff', '#bffcc6', '#ffc9de'
+          ];
+          // 市区町村コードの下3桁を使ってインデックスを計算
+          const code = municipality.code || '000';
+          const index = parseInt(code.substring(code.length - 3)) % colors.length;
+          return colors[index];
+        }
+        return this.currentTheme.municipalityFill;
+      }
     }
 
     // アプリケーションの初期化
@@ -796,20 +811,26 @@
           
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', selector.getMunicipalityPath(municipality));
-          path.setAttribute('fill', theme.municipalityFill);
+          path.setAttribute('fill', selector.getMunicipalityFillColor(municipality));
           path.setAttribute('stroke', theme.municipalityStroke);
           path.setAttribute('stroke-width', '0.5');
           path.style.cursor = 'pointer';
           path.style.transition = 'fill 0.2s ease';
 
           path.addEventListener('mouseenter', () => {
-            path.setAttribute('fill', theme.municipalityHoverFill);
+            // カラフルテーマの場合はホバー色を少し明るく
+            if (theme.prefectureFill === '#various') {
+              const currentColor = selector.getMunicipalityFillColor(municipality);
+              path.setAttribute('fill', adjustBrightness(currentColor, 1.2));
+            } else {
+              path.setAttribute('fill', theme.municipalityHoverFill);
+            }
             hoverInfo.textContent = municipality.name;
             hoverInfo.style.display = 'block';
           });
 
           path.addEventListener('mouseleave', () => {
-            path.setAttribute('fill', theme.municipalityFill);
+            path.setAttribute('fill', selector.getMunicipalityFillColor(municipality));
             hoverInfo.style.display = 'none';
           });
 
