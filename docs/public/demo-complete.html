@@ -414,14 +414,14 @@
         this.state.selectedPrefecture = prefecture;
         if (prefecture) {
           const bounds = this.calculateBounds(prefecture.features);
-          const padding = 30;  // パディングを減らしてより大きく表示
+          const padding = 20;  // さらにパディングを減らしてより大きく表示
           // 初期のアスペクト比を維持（800:600）
           const aspectRatio = 800 / 600;
           let width = bounds.width + padding * 2;
           let height = bounds.height + padding * 2;
           
           // 最小サイズを設定してより大きく表示
-          const minSize = 200;
+          const minSize = 300;  // 200から300に増加
           if (width < minSize) {
             width = minSize;
           }
@@ -505,10 +505,10 @@
       }
 
       getMunicipalityPath(municipality) {
-        return this.geometryToPath(municipality.geometry);
+        return this.geometryToPath(municipality.geometry, null, this.state.selectedPrefecture);
       }
 
-      geometryToPath(geometry, prefecture = null) {
+      geometryToPath(geometry, prefecture = null, selectedPrefecture = null) {
         let pathData = '';
         
         // 北海道の北方領土フィルタリング
@@ -535,7 +535,7 @@
           }
         }
         
-        // 沖縄県の特別処理
+        // 沖縄県の特別処理（都道府県表示時）
         if (prefecture && prefecture.code === '47') {
           const [[west, south], [east, north]] = prefecture.bounds;
           const okinawaCenterLng = (west + east) / 2;
@@ -551,7 +551,30 @@
           return this.geometryToPathWithProjection(geometry, okinawaProjection);
         }
         
-        return this.geometryToPathWithProjection(geometry, this.currentProjection);
+        // 市区町村表示時は選択された都道府県の投影を使用
+        const projection = selectedPrefecture ? this.getPrefectureProjection(selectedPrefecture) : this.currentProjection;
+        return this.geometryToPathWithProjection(geometry, projection);
+      }
+      
+      getPrefectureProjection(prefecture) {
+        // 都道府県選択時の投影設定を計算
+        const bounds = this.calculateBounds(prefecture.features);
+        const padding = 20;  // さらに小さくして拡大
+        const width = bounds.width + padding * 2;
+        const height = bounds.height + padding * 2;
+        
+        // より大きなスケールで表示
+        const scale = Math.min(
+          700 / width,  // 800から700に変更してより大きく
+          500 / height  // 600から500に変更してより大きく
+        );
+        
+        return {
+          scale: scale,
+          translateX: 400,
+          translateY: 300,
+          center: this.currentProjection.center
+        };
       }
       
       geometryToPathWithProjection(geometry, projection) {
