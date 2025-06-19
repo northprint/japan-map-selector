@@ -179,7 +179,6 @@
           <option value="colorful">カラフル</option>
         </select>
       </div>
-      
     </div>
     
     <div class="map-area">
@@ -205,7 +204,7 @@
   </div>
 
   <script>
-    // JapanMapSelectorクラスの簡易実装
+    // JapanMapSelectorクラスの簡易実装（demo.htmlを参考に）
     class JapanMapSelector {
       constructor(options) {
         this.options = options;
@@ -219,11 +218,21 @@
         this.prefectures = [];
         this.municipalities = [];
         this.currentTheme = this.getThemeConfig(options.theme || 'default');
-        this.simplificationLevel = options.simplificationLevel || 'medium';
+        this.simplificationLevel = options.simplificationLevel || 'low';
         this.listeners = {};
+        this.currentProjection = this.getDefaultProjection();
       }
 
-      async initialize(prefectureFile, municipalityFile) {
+      getDefaultProjection() {
+        return {
+          scale: 30,
+          translateX: 400,
+          translateY: 300,
+          center: [138.0, 38.0]
+        };
+      }
+
+      async initialize() {
         try {
           // GitHub Rawからデータを読み込む
           const baseUrl = 'https://raw.githubusercontent.com/northprint/japan-map-selector/main/src/data/simplified';
@@ -264,7 +273,8 @@
               prefectureGroups[code] = {
                 code: code,
                 name: name,
-                features: []
+                features: [],
+                bounds: this.calculateFeatureBounds(feature)
               };
             }
             prefectureGroups[code].features.push(feature);
@@ -274,12 +284,42 @@
         return Object.values(prefectureGroups);
       }
 
+      calculateFeatureBounds(feature) {
+        let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+        
+        const updateBounds = (coord) => {
+          minLng = Math.min(minLng, coord[0]);
+          minLat = Math.min(minLat, coord[1]);
+          maxLng = Math.max(maxLng, coord[0]);
+          maxLat = Math.max(maxLat, coord[1]);
+        };
+        
+        const processGeometry = (geometry) => {
+          if (geometry.type === 'Polygon') {
+            geometry.coordinates.forEach(ring => {
+              ring.forEach(updateBounds);
+            });
+          } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => {
+              polygon.forEach(ring => {
+                ring.forEach(updateBounds);
+              });
+            });
+          }
+        };
+        
+        processGeometry(feature.geometry);
+        
+        return [[minLng, minLat], [maxLng, maxLat]];
+      }
+
       processMunicipalities(features) {
         return features.map(feature => ({
           code: feature.properties.N03_007,
           name: feature.properties.N03_004 || feature.properties.N03_003 || '',
           prefectureCode: feature.properties.N03_007?.substring(0, 2),
-          geometry: feature.geometry
+          geometry: feature.geometry,
+          feature: feature
         }));
       }
 
@@ -450,43 +490,22 @@
       }
 
       getPrefecturePath(prefecture) {
-        this.currentPrefectureName = prefecture.name;
         return prefecture.features.map(feature => {
-          return this.geometryToPath(feature.geometry, prefecture.code === '47');
+          return this.geometryToPath(feature.geometry, prefecture);
         }).join(' ');
       }
 
       getMunicipalityPath(municipality) {
-        return this.geometryToPath(municipality.geometry, false);
+        return this.geometryToPath(municipality.geometry);
       }
 
-      geometryToPath(geometry, isOkinawa) {
+      geometryToPath(geometry, prefecture = null) {
         let pathData = '';
         
-        const processRing = (ring) => {
-          ring.forEach((coord, index) => {
-            let [x, y] = this.projectPoint(coord[0], coord[1]);
-            
-            // 沖縄県の特別処理
-            if (isOkinawa) {
-              // 沖縄県を左上の枠内に配置
-              // 元の座標を枠の中心に移動してスケール調整
-              x = (x - 400) * 2 + 150;
-              y = (y - 100) * 2 + 110;
-            }
-            
-            pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
-          });
-          pathData += 'Z ';
-        };
-        
-        if (geometry.type === 'Polygon') {
-          geometry.coordinates.forEach(processRing);
-        } else if (geometry.type === 'MultiPolygon') {
-          // 北方領土のフィルタリング（北海道のみ）
-          if (this.currentPrefectureName === '北海道') {
-            geometry.coordinates.forEach(polygon => {
-              // ポリゴンの中心点を計算
+        // 北海道の北方領土フィルタリング
+        if (prefecture && prefecture.name === '北海道') {
+          if (geometry.type === 'MultiPolygon') {
+            const filteredCoords = geometry.coordinates.filter(polygon => {
               const ring = polygon[0];
               let sumLng = 0, sumLat = 0;
               ring.forEach(coord => {
@@ -497,22 +516,65 @@
               const centerLat = sumLat / ring.length;
               
               // 北方領土を除外（緯度43.5度以北かつ東経145.5度以東）
-              if (!(centerLat > 43.5 && centerLng > 145.5)) {
-                polygon.forEach(processRing);
-              }
+              return !(centerLat > 43.5 && centerLng > 145.5);
             });
-          } else {
-            geometry.coordinates.forEach(polygon => {
-              polygon.forEach(processRing);
-            });
+            
+            geometry = {
+              type: 'MultiPolygon',
+              coordinates: filteredCoords
+            };
           }
+        }
+        
+        // 沖縄県の特別処理
+        if (prefecture && prefecture.code === '47') {
+          const [[west, south], [east, north]] = prefecture.bounds;
+          const okinawaCenterLng = (west + east) / 2;
+          const okinawaCenterLat = (south + north) / 2;
+          
+          const okinawaProjection = {
+            scale: this.currentProjection.scale * 0.7,
+            translateX: 210,  // 枠の中央（x: 120 + width: 180 / 2）
+            translateY: 120,  // 枠の中央（y: 50 + height: 140 / 2）
+            center: [okinawaCenterLng, okinawaCenterLat]
+          };
+          
+          return this.geometryToPathWithProjection(geometry, okinawaProjection);
+        }
+        
+        return this.geometryToPathWithProjection(geometry, this.currentProjection);
+      }
+      
+      geometryToPathWithProjection(geometry, projection) {
+        let pathData = '';
+        
+        const processRing = (ring) => {
+          ring.forEach((coord, index) => {
+            const [x, y] = this.projectPointWithProjection(coord[0], coord[1], projection);
+            pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+          });
+          pathData += 'Z ';
+        };
+        
+        if (geometry.type === 'Polygon') {
+          geometry.coordinates.forEach(processRing);
+        } else if (geometry.type === 'MultiPolygon') {
+          geometry.coordinates.forEach(polygon => {
+            polygon.forEach(processRing);
+          });
         }
         
         return pathData;
       }
+      
+      projectPointWithProjection(lon, lat, projection) {
+        const x = (lon - projection.center[0]) * projection.scale + projection.translateX;
+        const y = -(lat - projection.center[1]) * projection.scale + projection.translateY;
+        return [x, y];
+      }
 
       getOkinawaFrame() {
-        return { x: 50, y: 50, width: 200, height: 120 };
+        return { x: 120, y: 50, width: 180, height: 140 };
       }
 
       on(event, callback) {
@@ -755,7 +817,6 @@
     themeSelect.addEventListener('change', () => {
       selector.setTheme(themeSelect.value);
     });
-
 
     // ドラッグ機能
     svg.addEventListener('mousedown', (e) => {
