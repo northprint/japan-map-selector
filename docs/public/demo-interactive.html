@@ -369,7 +369,7 @@
 
   <script type="module">
     // ライブラリのインポート
-    import('https://unpkg.com/japan-map-selector@latest/dist/index.es.js')
+    import('https://unpkg.com/japan-map-selector@0.1.2/dist/index.es.js')
       .then(module => {
         const { JapanMapSelector } = module;
         initializeDemo(JapanMapSelector);
@@ -529,13 +529,9 @@
         
         // データの読み込み
         try {
-          let prefectureFile = `${dataBaseUrl}/simplified/prefectures-medium.geojson`;
-          let municipalityFile = `${dataBaseUrl}/simplified/municipalities-medium.geojson`;
-          
-          if (currentSimplificationLevel !== 'original') {
-            prefectureFile = `${dataBaseUrl}/simplified/prefectures-${currentSimplificationLevel}.geojson`;
-            municipalityFile = `${dataBaseUrl}/simplified/municipalities-${currentSimplificationLevel}.geojson`;
-          }
+          // 常にCDNから読み込む
+          const prefectureFile = `https://unpkg.com/japan-map-selector@0.1.2/src/data/simplified/prefectures-${currentSimplificationLevel}.geojson`;
+          const municipalityFile = `https://unpkg.com/japan-map-selector@0.1.2/src/data/simplified/municipalities-${currentSimplificationLevel}.geojson`;
           
           debug(`データファイル: ${prefectureFile}, ${municipalityFile}`);
           
