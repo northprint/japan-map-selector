@@ -265,21 +265,6 @@
         const prefectureGroups = {};
         
         features.forEach(feature => {
-          // 北方領土をフィルタリング
-          if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
-            const coords = feature.geometry.type === 'Polygon' ? 
-              feature.geometry.coordinates[0] : 
-              feature.geometry.coordinates[0][0];
-            
-            // 座標から最大緯度を取得
-            const maxLat = Math.max(...coords.map(coord => coord[1]));
-            
-            // 北方領土の除外（緯度45度以上の北海道の島）
-            if (feature.properties.N03_001 === '北海道' && maxLat > 45.0) {
-              return;
-            }
-          }
-          
           const code = this.getPrefectureCode(feature);
           const name = feature.properties.N03_001;
           
@@ -474,6 +459,7 @@
       }
 
       getPrefecturePath(prefecture) {
+        this.currentPrefectureName = prefecture.name;
         return prefecture.features.map(feature => {
           return this.geometryToPath(feature.geometry, prefecture.code === '47');
         }).join(' ');
@@ -504,9 +490,29 @@
         if (geometry.type === 'Polygon') {
           geometry.coordinates.forEach(processRing);
         } else if (geometry.type === 'MultiPolygon') {
-          geometry.coordinates.forEach(polygon => {
-            polygon.forEach(processRing);
-          });
+          // 北方領土のフィルタリング（北海道のみ）
+          if (this.currentPrefectureName === '北海道') {
+            geometry.coordinates.forEach(polygon => {
+              // ポリゴンの中心点を計算
+              const ring = polygon[0];
+              let sumLng = 0, sumLat = 0;
+              ring.forEach(coord => {
+                sumLng += coord[0];
+                sumLat += coord[1];
+              });
+              const centerLng = sumLng / ring.length;
+              const centerLat = sumLat / ring.length;
+              
+              // 北方領土を除外（緯度43.5度以北かつ東経145.5度以東）
+              if (!(centerLat > 43.5 && centerLng > 145.5)) {
+                polygon.forEach(processRing);
+              }
+            });
+          } else {
+            geometry.coordinates.forEach(polygon => {
+              polygon.forEach(processRing);
+            });
+          }
         }
         
         return pathData;
