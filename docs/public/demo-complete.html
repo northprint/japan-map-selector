@@ -418,8 +418,9 @@
           // 初期のアスペクト比を維持（800:600）
           const aspectRatio = 800 / 600;
           
-          // スケール係数を大きくして拡大表示
-          const scaleFactor = 0.6;  // 60%のサイズで表示（より大きく）
+          // スケール係数を調整（北海道のような大きな都道府県は控えめに）
+          const isLargePrefecture = prefecture.code === '01' || bounds.width > 200 || bounds.height > 200;
+          const scaleFactor = isLargePrefecture ? 0.8 : 0.6;  // 大きな都道府県は80%、小さな都道府県は60%
           let width = (bounds.width + padding * 2) * scaleFactor;
           let height = (bounds.height + padding * 2) * scaleFactor;
           
@@ -457,29 +458,45 @@
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         
         features.forEach(feature => {
-          const updateBounds = (coord) => {
-            const [x, y] = this.projectPoint(coord[0], coord[1]);
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
-          };
-          
-          const processGeometry = (geometry) => {
-            if (geometry.type === 'Polygon') {
-              geometry.coordinates.forEach(ring => {
-                ring.forEach(updateBounds);
-              });
-            } else if (geometry.type === 'MultiPolygon') {
-              geometry.coordinates.forEach(polygon => {
-                polygon.forEach(ring => {
+          // 北海道の場合、全体の境界を使用（北方領土を除いた後の境界計算を避ける）
+          if (feature.properties && feature.properties.N03_001 === '北海道') {
+            // 北海道本土の大まかな境界を使用
+            const hokkaidoBounds = [
+              [139.5, 41.4], // 南西
+              [145.8, 45.5]  // 北東（北方領土を除く）
+            ];
+            hokkaidoBounds.forEach(coord => {
+              const [x, y] = this.projectPoint(coord[0], coord[1]);
+              minX = Math.min(minX, x);
+              minY = Math.min(minY, y);
+              maxX = Math.max(maxX, x);
+              maxY = Math.max(maxY, y);
+            });
+          } else {
+            const updateBounds = (coord) => {
+              const [x, y] = this.projectPoint(coord[0], coord[1]);
+              minX = Math.min(minX, x);
+              minY = Math.min(minY, y);
+              maxX = Math.max(maxX, x);
+              maxY = Math.max(maxY, y);
+            };
+            
+            const processGeometry = (geometry) => {
+              if (geometry.type === 'Polygon') {
+                geometry.coordinates.forEach(ring => {
                   ring.forEach(updateBounds);
                 });
-              });
-            }
-          };
-          
-          processGeometry(feature.geometry);
+              } else if (geometry.type === 'MultiPolygon') {
+                geometry.coordinates.forEach(polygon => {
+                  polygon.forEach(ring => {
+                    ring.forEach(updateBounds);
+                  });
+                });
+              }
+            };
+            
+            processGeometry(feature.geometry);
+          }
         });
         
         return {
