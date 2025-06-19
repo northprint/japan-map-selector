@@ -265,6 +265,21 @@
         const prefectureGroups = {};
         
         features.forEach(feature => {
+          // 北方領土をフィルタリング
+          if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
+            const coords = feature.geometry.type === 'Polygon' ? 
+              feature.geometry.coordinates[0] : 
+              feature.geometry.coordinates[0][0];
+            
+            // 座標から最大緯度を取得
+            const maxLat = Math.max(...coords.map(coord => coord[1]));
+            
+            // 北方領土の除外（緯度45度以上の北海道の島）
+            if (feature.properties.N03_001 === '北海道' && maxLat > 45.0) {
+              return;
+            }
+          }
+          
           const code = this.getPrefectureCode(feature);
           const name = feature.properties.N03_001;
           
@@ -384,7 +399,23 @@
         if (prefecture) {
           const bounds = this.calculateBounds(prefecture.features);
           const padding = 50;
-          this.state.viewBox = `${bounds.minX - padding} ${bounds.minY - padding} ${bounds.width + padding * 2} ${bounds.height + padding * 2}`;
+          // 初期のアスペクト比を維持（800:600）
+          const aspectRatio = 800 / 600;
+          let width = bounds.width + padding * 2;
+          let height = bounds.height + padding * 2;
+          
+          // アスペクト比を調整
+          if (width / height > aspectRatio) {
+            height = width / aspectRatio;
+          } else {
+            width = height * aspectRatio;
+          }
+          
+          // 中心を計算
+          const centerX = bounds.minX + bounds.width / 2;
+          const centerY = bounds.minY + bounds.height / 2;
+          
+          this.state.viewBox = `${centerX - width / 2} ${centerY - height / 2} ${width} ${height}`;
         } else {
           this.state.viewBox = '0 0 800 600';
         }
