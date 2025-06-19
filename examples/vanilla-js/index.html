@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Vanilla JS Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    #map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    
+    .controls {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .control-group label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+    }
+    
+    .control-group select {
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    #map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      height: 600px;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+    }
+    
+    #selection-info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    .back-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .back-button:hover {
+      background: #f8f9fa;
+    }
+  </style>
+</head>
+<body>
+  <div id="map-container">
+    <h1>Japan Map Selector - Vanilla JS Example</h1>
+    
+    <div class="controls">
+      <div class="control-group">
+        <label for="theme-select">テーマ</label>
+        <select id="theme-select">
+          <option value="default">デフォルト</option>
+          <option value="monochrome">モノクローム</option>
+          <option value="warm">ウォーム</option>
+          <option value="cool">クール</option>
+          <option value="natural">ナチュラル</option>
+          <option value="vivid">ビビッド</option>
+          <option value="pastel">パステル</option>
+          <option value="colorful">カラフル</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label for="simplification-select">簡略化レベル</label>
+        <select id="simplification-select">
+          <option value="high">高精度</option>
+          <option value="medium" selected>中精度</option>
+          <option value="low">低精度</option>
+          <option value="ultra-low">超低精度</option>
+        </select>
+      </div>
+    </div>
+    
+    <div style="position: relative;">
+      <svg id="map-svg"></svg>
+      <button id="back-button" class="back-button" style="display: none;">← 全国へ戻る</button>
+    </div>
+    
+    <div id="selection-info">
+      <p>地図データを読み込んでいます...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    // npmからインストールした場合
+    import { JapanMapSelector } from 'japan-map-selector';
+    
+    // または CDN から
+    // import { JapanMapSelector } from 'https://unpkg.com/japan-map-selector@latest/dist/index.es.js';
+    
+    // 開発時は相対パスから
+    // import { JapanMapSelector } from '../../dist/index.es.js';
+    
+    const svg = document.getElementById('map-svg');
+    const backButton = document.getElementById('back-button');
+    const themeSelect = document.getElementById('theme-select');
+    const simplificationSelect = document.getElementById('simplification-select');
+    const selectionInfo = document.getElementById('selection-info');
+    
+    let selector = null;
+    
+    async function initializeSelector() {
+      // 既存のセレクターをクリーンアップ
+      if (selector) {
+        selector = null;
+      }
+      
+      // 新しいセレクターを作成
+      selector = new JapanMapSelector({
+        width: 800,
+        height: 600,
+        simplificationLevel: simplificationSelect.value,
+        onPrefectureSelect: (prefecture) => {
+          selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
+        },
+        onMunicipalitySelect: (municipality) => {
+          selectionInfo.innerHTML = `<p>選択中: <strong>${municipality.name}</strong></p>`;
+        }
+      });
+      
+      // 状態変更のリスナー
+      selector.on('stateChanged', (state) => {
+        render(state);
+      });
+      
+      // データの読み込み
+      try {
+        // 注意: データファイルのパスは環境に応じて調整が必要
+        // CDN を使用する場合:
+        const baseUrl = 'https://unpkg.com/japan-map-selector@latest/src/data/simplified';
+        const prefectureFile = `${baseUrl}/prefectures-${simplificationSelect.value}.geojson`;
+        const municipalityFile = `${baseUrl}/municipalities-${simplificationSelect.value}.geojson`;
+        
+        // ローカル開発時:
+        // const prefectureFile = `../../src/data/simplified/prefectures-${simplificationSelect.value}.geojson`;
+        // const municipalityFile = `../../src/data/simplified/municipalities-${simplificationSelect.value}.geojson`;
+        
+        await selector.initialize(prefectureFile, municipalityFile);
+        
+        // テーマを設定
+        selector.setTheme(themeSelect.value);
+        
+        selectionInfo.innerHTML = '<p>都道府県をクリックして選択してください。</p>';
+      } catch (error) {
+        console.error('データの読み込みエラー:', error);
+        selectionInfo.innerHTML = `<p style="color: red;">エラー: ${error.message}</p>`;
+      }
+    }
+    
+    function render(state) {
+      svg.innerHTML = state.svgContent;
+      backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+      
+      // 属性表示を追加
+      if (state.attribution) {
+        svg.appendChild(state.attribution);
+      }
+    }
+    
+    // イベントリスナー
+    backButton.addEventListener('click', () => {
+      selector.resetView();
+    });
+    
+    themeSelect.addEventListener('change', () => {
+      if (selector) {
+        selector.setTheme(themeSelect.value);
+      }
+    });
+    
+    simplificationSelect.addEventListener('change', () => {
+      initializeSelector();
+    });
+    
+    // 初期化
+    initializeSelector();
+  </script>
+</body>
+</html>

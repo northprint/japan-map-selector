@@ -50,30 +50,71 @@ npm install japan-map-selector
 ```javascript
 import { JapanMapSelector } from 'japan-map-selector';
 
+// セレクターを作成
 const selector = new JapanMapSelector({
   width: 800,
   height: 600,
-  theme: 'default'
+  onPrefectureSelect: (prefecture) => {
+    console.log('Selected prefecture:', prefecture.name);
+  },
+  onMunicipalitySelect: (municipality) => {
+    console.log('Selected municipality:', municipality.name);
+  }
 });
 
-// Load map data
+// データを読み込んで初期化
+// CDN経由でデータを読み込む場合（推奨）
+const baseUrl = 'https://unpkg.com/japan-map-selector@latest/src/data/simplified';
 await selector.initialize(
-  'path/to/prefectures-medium.geojson',
-  'path/to/municipalities-medium.geojson'
+  `${baseUrl}/prefectures-medium.geojson`,
+  `${baseUrl}/municipalities-medium.geojson`
 );
 
-// Listen for selection events
-selector.on('prefectureSelected', (prefecture) => {
-  console.log('Selected prefecture:', prefecture.name);
+// SVGコンテンツを取得して表示
+const svgElement = document.getElementById('map-svg');
+selector.on('stateChanged', (state) => {
+  svgElement.innerHTML = state.svgContent;
 });
+```
 
-selector.on('municipalitySelected', (municipality) => {
-  console.log('Selected municipality:', municipality.name);
-});
+完全な実装例は [examples/vanilla-js/](examples/vanilla-js/) を参照してください。
 
-// Render the map
-const mapContainer = document.getElementById('map');
-mapContainer.innerHTML = selector.render();
+### CDN Usage
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Japan Map Selector - CDN Example</title>
+</head>
+<body>
+  <svg id="map-svg" width="800" height="600"></svg>
+  
+  <script type="module">
+    // CDNから読み込み
+    import { JapanMapSelector } from 'https://unpkg.com/japan-map-selector@latest/dist/index.es.js';
+    
+    const selector = new JapanMapSelector({
+      width: 800,
+      height: 600
+    });
+    
+    // CDN経由でデータを読み込み
+    const baseUrl = 'https://unpkg.com/japan-map-selector@latest/src/data/simplified';
+    await selector.initialize(
+      `${baseUrl}/prefectures-medium.geojson`,
+      `${baseUrl}/municipalities-medium.geojson`
+    );
+    
+    // 状態変更を監視して描画
+    const svg = document.getElementById('map-svg');
+    selector.on('stateChanged', (state) => {
+      svg.innerHTML = state.svgContent;
+    });
+  </script>
+</body>
+</html>
 ```
 
 ### React
