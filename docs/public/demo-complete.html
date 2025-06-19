@@ -462,7 +462,7 @@
             // 沖縄県の特別処理
             if (isOkinawa) {
               x = (x - 480) * 2 + 150;
-              y = (y + 150) * 2 + 470;
+              y = (y + 150) * 2 + 110;
             }
             
             pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
@@ -482,7 +482,7 @@
       }
 
       getOkinawaFrame() {
-        return { x: 50, y: 420, width: 200, height: 120 };
+        return { x: 50, y: 50, width: 200, height: 120 };
       }
 
       on(event, callback) {
