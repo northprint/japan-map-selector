@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Interactive Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+    
+    #map-container {
+      background: white;
+      max-width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* コントロールパネル（上部） */
+    .controls-panel {
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      padding: 15px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+    
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .control-group label {
+      font-size: 12px;
+      color: #6c757d;
+      font-weight: 600;
+    }
+    
+    .control-group select {
+      padding: 5px 8px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      background: white;
+    }
+    
+    /* 地図エリア */
+    .map-area {
+      position: relative;
+      flex: 1;
+      padding: 20px;
+    }
+    
+    #map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      height: 100%;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      cursor: grab;
+    }
+    
+    #map-svg:active {
+      cursor: grabbing;
+    }
+    
+    /* フローティングコントロール */
+    .floating-controls {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .back-button {
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .back-button:hover {
+      background: #f8f9fa;
+    }
+    
+    /* ズームコントロール */
+    .zoom-controls {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .zoom-button {
+      display: block;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 0;
+    }
+    
+    .zoom-button:hover {
+      background: #f8f9fa;
+    }
+    
+    .zoom-button:first-child {
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    /* ホバー情報 */
+    .hover-info {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    /* 情報パネル */
+    #selection-info {
+      padding: 15px 20px;
+      background: #f8f9fa;
+      border-top: 1px solid #e9ecef;
+    }
+    
+    #selection-info p {
+      margin: 0;
+      color: #495057;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 50px;
+      color: #666;
+    }
+    
+    .error {
+      color: #dc3545;
+      text-align: center;
+      padding: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map-container">
+    <div class="controls-panel">
+      <div class="control-group">
+        <label for="theme-select">テーマ</label>
+        <select id="theme-select">
+          <option value="default">デフォルト</option>
+          <option value="monochrome">モノクローム</option>
+          <option value="warm">ウォーム</option>
+          <option value="cool">クール</option>
+          <option value="colorful">カラフル</option>
+        </select>
+      </div>
+      
+      <div class="control-group">
+        <label for="simplification-select">簡略化レベル</label>
+        <select id="simplification-select">
+          <option value="high">高精度</option>
+          <option value="medium">中精度</option>
+          <option value="low" selected>低精度</option>
+          <option value="ultra-low">超低精度</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="map-area">
+      <svg id="map-svg" viewBox="0 0 800 600">
+        <text x="400" y="300" text-anchor="middle" class="loading">地図データを読み込んでいます...</text>
+      </svg>
+      
+      <div class="floating-controls">
+        <button id="back-button" class="back-button" style="display: none;">← 全国へ戻る</button>
+      </div>
+      
+      <div class="zoom-controls">
+        <button class="zoom-button" id="zoom-in">+</button>
+        <button class="zoom-button" id="zoom-out">−</button>
+      </div>
+      
+      <div id="hover-info" class="hover-info" style="display: none;"></div>
+    </div>
+    
+    <div id="selection-info">
+      <p>地図データを読み込んでいます...</p>
+    </div>
+  </div>
+
+  <script>
+    // JapanMapSelectorクラスの簡易実装
+    class JapanMapSelector {
+      constructor(options) {
+        this.options = options;
+        this.state = {
+          selectedPrefecture: null,
+          hoveredPrefecture: null,
+          hoveredMunicipality: null,
+          viewBox: '0 0 800 600',
+          showTokyoIslands: false
+        };
+        this.prefectures = [];
+        this.municipalities = [];
+        this.currentTheme = this.getThemeConfig(options.theme || 'default');
+        this.simplificationLevel = options.simplificationLevel || 'medium';
+        this.listeners = {};
+      }
+
+      async initialize(prefectureFile, municipalityFile) {
+        try {
+          // GitHub Rawからデータを読み込む
+          const baseUrl = 'https://raw.githubusercontent.com/northprint/japan-map-selector/main/src/data/simplified';
+          const prefUrl = `${baseUrl}/prefectures-${this.simplificationLevel}.geojson`;
+          const muniUrl = `${baseUrl}/municipalities-${this.simplificationLevel}.geojson`;
+
+          const [prefRes, muniRes] = await Promise.all([
+            fetch(prefUrl),
+            fetch(muniUrl)
+          ]);
+
+          if (!prefRes.ok || !muniRes.ok) {
+            throw new Error('データの読み込みに失敗しました');
+          }
+
+          const prefData = await prefRes.json();
+          const muniData = await muniRes.json();
+
+          this.prefectures = this.processPrefectures(prefData.features);
+          this.municipalities = this.processMunicipalities(muniData.features);
+          
+          this.emit('stateChanged', this.state);
+        } catch (error) {
+          console.error('Error loading data:', error);
+          throw error;
+        }
+      }
+
+      processPrefectures(features) {
+        const prefectureGroups = {};
+        
+        features.forEach(feature => {
+          const code = this.getPrefectureCode(feature);
+          const name = feature.properties.N03_001;
+          
+          if (code && name) {
+            if (!prefectureGroups[code]) {
+              prefectureGroups[code] = {
+                code: code,
+                name: name,
+                features: []
+              };
+            }
+            prefectureGroups[code].features.push(feature);
+          }
+        });
+        
+        return Object.values(prefectureGroups);
+      }
+
+      processMunicipalities(features) {
+        return features.map(feature => ({
+          code: feature.properties.N03_007,
+          name: feature.properties.N03_004 || feature.properties.N03_003 || '',
+          prefectureCode: feature.properties.N03_007?.substring(0, 2),
+          geometry: feature.geometry
+        }));
+      }
+
+      getPrefectureCode(feature) {
+        if (feature.properties.N03_007) {
+          return feature.properties.N03_007.substring(0, 2);
+        }
+        const prefectureMap = {
+          '北海道': '01', '青森県': '02', '岩手県': '03', '宮城県': '04', '秋田県': '05',
+          '山形県': '06', '福島県': '07', '茨城県': '08', '栃木県': '09', '群馬県': '10',
+          '埼玉県': '11', '千葉県': '12', '東京都': '13', '神奈川県': '14', '新潟県': '15',
+          '富山県': '16', '石川県': '17', '福井県': '18', '山梨県': '19', '長野県': '20',
+          '岐阜県': '21', '静岡県': '22', '愛知県': '23', '三重県': '24', '滋賀県': '25',
+          '京都府': '26', '大阪府': '27', '兵庫県': '28', '奈良県': '29', '和歌山県': '30',
+          '鳥取県': '31', '島根県': '32', '岡山県': '33', '広島県': '34', '山口県': '35',
+          '徳島県': '36', '香川県': '37', '愛媛県': '38', '高知県': '39', '福岡県': '40',
+          '佐賀県': '41', '長崎県': '42', '熊本県': '43', '大分県': '44', '宮崎県': '45',
+          '鹿児島県': '46', '沖縄県': '47'
+        };
+        return prefectureMap[feature.properties.N03_001] || null;
+      }
+
+      getThemeConfig(themeName) {
+        const themes = {
+          default: {
+            backgroundColor: '#ffffff',
+            prefectureFill: '#e8f4f8',
+            prefectureStroke: '#4a90e2',
+            prefectureHoverFill: '#d0e8f2',
+            municipalityFill: '#f0f8ff',
+            municipalityStroke: '#6b9bd1',
+            municipalityHoverFill: '#e1f0ff'
+          },
+          monochrome: {
+            backgroundColor: '#ffffff',
+            prefectureFill: '#f0f0f0',
+            prefectureStroke: '#666666',
+            prefectureHoverFill: '#e0e0e0',
+            municipalityFill: '#f8f8f8',
+            municipalityStroke: '#888888',
+            municipalityHoverFill: '#eeeeee'
+          },
+          warm: {
+            backgroundColor: '#fffbf7',
+            prefectureFill: '#ffe5d9',
+            prefectureStroke: '#ff8c42',
+            prefectureHoverFill: '#ffd4c1',
+            municipalityFill: '#fff0e6',
+            municipalityStroke: '#ffa65a',
+            municipalityHoverFill: '#ffe0d1'
+          },
+          cool: {
+            backgroundColor: '#fafcff',
+            prefectureFill: '#e3f2fd',
+            prefectureStroke: '#1976d2',
+            prefectureHoverFill: '#bbdefb',
+            municipalityFill: '#f3f9ff',
+            municipalityStroke: '#42a5f5',
+            municipalityHoverFill: '#e1f5fe'
+          },
+          colorful: {
+            backgroundColor: '#ffffff',
+            prefectureFill: '#various',
+            prefectureStroke: '#333333',
+            prefectureHoverFill: '#various',
+            municipalityFill: '#f5f5f5',
+            municipalityStroke: '#666666',
+            municipalityHoverFill: '#e0e0e0'
+          }
+        };
+        return themes[themeName] || themes.default;
+      }
+
+      setTheme(themeName) {
+        this.currentTheme = this.getThemeConfig(themeName);
+        this.emit('stateChanged', this.state);
+      }
+
+      getTheme() {
+        return this.currentTheme;
+      }
+
+      getPrefectures() {
+        return this.prefectures;
+      }
+
+      getState() {
+        return this.state;
+      }
+
+      selectPrefecture(prefecture) {
+        this.state.selectedPrefecture = prefecture;
+        if (prefecture) {
+          const bounds = this.calculateBounds(prefecture.features);
+          const padding = 50;
+          this.state.viewBox = `${bounds.minX - padding} ${bounds.minY - padding} ${bounds.width + padding * 2} ${bounds.height + padding * 2}`;
+        } else {
+          this.state.viewBox = '0 0 800 600';
+        }
+        this.emit('stateChanged', this.state);
+        if (this.options.onPrefectureSelect && prefecture) {
+          this.options.onPrefectureSelect(prefecture);
+        }
+      }
+
+      calculateBounds(features) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        features.forEach(feature => {
+          const updateBounds = (coord) => {
+            const [x, y] = this.projectPoint(coord[0], coord[1]);
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          };
+          
+          const processGeometry = (geometry) => {
+            if (geometry.type === 'Polygon') {
+              geometry.coordinates.forEach(ring => {
+                ring.forEach(updateBounds);
+              });
+            } else if (geometry.type === 'MultiPolygon') {
+              geometry.coordinates.forEach(polygon => {
+                polygon.forEach(ring => {
+                  ring.forEach(updateBounds);
+                });
+              });
+            }
+          };
+          
+          processGeometry(feature.geometry);
+        });
+        
+        return {
+          minX,
+          minY,
+          width: maxX - minX,
+          height: maxY - minY
+        };
+      }
+
+      projectPoint(lon, lat) {
+        const scale = 150;
+        const x = (lon - 138) * scale + 400;
+        const y = -(lat - 38) * scale + 300;
+        return [x, y];
+      }
+
+      getPrefecturePath(prefecture) {
+        return prefecture.features.map(feature => {
+          return this.geometryToPath(feature.geometry, prefecture.code === '47');
+        }).join(' ');
+      }
+
+      getMunicipalityPath(municipality) {
+        return this.geometryToPath(municipality.geometry, false);
+      }
+
+      geometryToPath(geometry, isOkinawa) {
+        let pathData = '';
+        
+        const processRing = (ring) => {
+          ring.forEach((coord, index) => {
+            let [x, y] = this.projectPoint(coord[0], coord[1]);
+            
+            // 沖縄県の特別処理
+            if (isOkinawa) {
+              x = (x - 520) * 0.8 + 210;
+              y = (y - 380) * 0.8 + 510;
+            }
+            
+            pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+          });
+          pathData += 'Z ';
+        };
+        
+        if (geometry.type === 'Polygon') {
+          geometry.coordinates.forEach(processRing);
+        } else if (geometry.type === 'MultiPolygon') {
+          geometry.coordinates.forEach(polygon => {
+            polygon.forEach(processRing);
+          });
+        }
+        
+        return pathData;
+      }
+
+      getOkinawaFrame() {
+        return { x: 120, y: 450, width: 180, height: 120 };
+      }
+
+      on(event, callback) {
+        if (!this.listeners[event]) {
+          this.listeners[event] = [];
+        }
+        this.listeners[event].push(callback);
+      }
+
+      emit(event, data) {
+        if (this.listeners[event]) {
+          this.listeners[event].forEach(callback => callback(data));
+        }
+      }
+
+      isPrefectureSelectable(code) {
+        return true;
+      }
+
+      getPrefectureFillColor(prefecture) {
+        if (this.currentTheme.prefectureFill === '#various') {
+          const colors = [
+            '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57',
+            '#ff9ff3', '#54a0ff', '#48dbfb', '#00d2d3', '#1dd1a1'
+          ];
+          const index = parseInt(prefecture.code) % colors.length;
+          return colors[index];
+        }
+        return this.currentTheme.prefectureFill;
+      }
+    }
+
+    // アプリケーションの初期化
+    const svg = document.getElementById('map-svg');
+    const backButton = document.getElementById('back-button');
+    const zoomInButton = document.getElementById('zoom-in');
+    const zoomOutButton = document.getElementById('zoom-out');
+    const hoverInfo = document.getElementById('hover-info');
+    const selectionInfo = document.getElementById('selection-info');
+    const themeSelect = document.getElementById('theme-select');
+    const simplificationSelect = document.getElementById('simplification-select');
+    
+    let selector = null;
+    let currentViewBox = [0, 0, 800, 600];
+    let isDragging = false;
+    let hasMoved = false;
+    let dragStartPoint = null;
+    let dragStartViewBox = null;
+
+    // セレクターを初期化
+    async function initializeSelector() {
+      const simplificationLevel = simplificationSelect.value;
+      
+      selector = new JapanMapSelector({
+        theme: themeSelect.value,
+        simplificationLevel: simplificationLevel,
+        onPrefectureSelect: (prefecture) => {
+          selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
+        },
+        onMunicipalitySelect: (municipality) => {
+          selectionInfo.innerHTML = `<p>選択中: <strong>${municipality.name}</strong></p>`;
+        }
+      });
+
+      selector.on('stateChanged', (state) => {
+        render(state);
+      });
+
+      try {
+        await selector.initialize();
+        selectionInfo.innerHTML = '<p>都道府県をクリックして選択してください。</p>';
+      } catch (error) {
+        console.error('Error:', error);
+        selectionInfo.innerHTML = '<p style="color: red;">データの読み込みに失敗しました。</p>';
+      }
+    }
+
+    // レンダリング
+    function render(state) {
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
+
+      const theme = selector.getTheme();
+      svg.style.backgroundColor = theme.backgroundColor;
+      backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+
+      if (!state.selectedPrefecture) {
+        // 沖縄県の枠
+        const okinawaFrame = selector.getOkinawaFrame();
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', okinawaFrame.x);
+        rect.setAttribute('y', okinawaFrame.y);
+        rect.setAttribute('width', okinawaFrame.width);
+        rect.setAttribute('height', okinawaFrame.height);
+        rect.setAttribute('fill', 'white');
+        rect.setAttribute('stroke', '#666');
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('stroke-dasharray', '5,5');
+        rect.setAttribute('rx', '5');
+        rect.setAttribute('ry', '5');
+        svg.appendChild(rect);
+
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', okinawaFrame.x + okinawaFrame.width / 2);
+        text.setAttribute('y', okinawaFrame.y + 20);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '14');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('fill', '#333');
+        text.textContent = '沖縄県';
+        svg.appendChild(text);
+
+        // 都道府県を描画
+        const prefectures = selector.getPrefectures();
+        prefectures.forEach(prefecture => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getPrefecturePath(prefecture));
+          path.setAttribute('fill', selector.getPrefectureFillColor(prefecture));
+          path.setAttribute('stroke', theme.prefectureStroke);
+          path.setAttribute('stroke-width', '0.5');
+          path.style.cursor = 'pointer';
+
+          path.addEventListener('mouseenter', () => {
+            path.setAttribute('fill', theme.prefectureHoverFill);
+            hoverInfo.textContent = prefecture.name;
+            hoverInfo.style.display = 'block';
+          });
+
+          path.addEventListener('mouseleave', () => {
+            path.setAttribute('fill', selector.getPrefectureFillColor(prefecture));
+            hoverInfo.style.display = 'none';
+          });
+
+          path.addEventListener('click', () => {
+            if (!hasMoved) {
+              selector.selectPrefecture(prefecture);
+            }
+          });
+
+          svg.appendChild(path);
+        });
+      } else {
+        // 市区町村を描画
+        const municipalities = selector.municipalities.filter(m => 
+          m.prefectureCode === state.selectedPrefecture.code
+        );
+
+        municipalities.forEach(municipality => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getMunicipalityPath(municipality));
+          path.setAttribute('fill', theme.municipalityFill);
+          path.setAttribute('stroke', theme.municipalityStroke);
+          path.setAttribute('stroke-width', '0.5');
+          path.style.cursor = 'pointer';
+
+          path.addEventListener('mouseenter', () => {
+            path.setAttribute('fill', theme.municipalityHoverFill);
+            hoverInfo.textContent = municipality.name;
+            hoverInfo.style.display = 'block';
+          });
+
+          path.addEventListener('mouseleave', () => {
+            path.setAttribute('fill', theme.municipalityFill);
+            hoverInfo.style.display = 'none';
+          });
+
+          path.addEventListener('click', () => {
+            if (!hasMoved && selector.options.onMunicipalitySelect) {
+              selector.options.onMunicipalitySelect(municipality);
+            }
+          });
+
+          svg.appendChild(path);
+        });
+      }
+    }
+
+    // ビューボックス管理
+    function updateViewBox(viewBox) {
+      svg.setAttribute('viewBox', viewBox.join(' '));
+      currentViewBox = [...viewBox];
+    }
+
+    // ズーム機能
+    function zoom(factor) {
+      const [x, y, width, height] = currentViewBox;
+      const cx = x + width / 2;
+      const cy = y + height / 2;
+      
+      const newWidth = width / factor;
+      const newHeight = height / factor;
+      
+      if (newWidth < 50 || newWidth > 2000) return;
+      
+      const newX = cx - newWidth / 2;
+      const newY = cy - newHeight / 2;
+      
+      updateViewBox([newX, newY, newWidth, newHeight]);
+    }
+
+    // イベントリスナー
+    backButton.addEventListener('click', () => {
+      selector.selectPrefecture(null);
+    });
+
+    zoomInButton.addEventListener('click', () => {
+      zoom(1.2);
+    });
+
+    zoomOutButton.addEventListener('click', () => {
+      zoom(0.8);
+    });
+
+    themeSelect.addEventListener('change', () => {
+      selector.setTheme(themeSelect.value);
+    });
+
+    simplificationSelect.addEventListener('change', () => {
+      initializeSelector();
+    });
+
+    // ドラッグ機能
+    svg.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        isDragging = true;
+        hasMoved = false;
+        dragStartPoint = { x: e.clientX, y: e.clientY };
+        dragStartViewBox = [...currentViewBox];
+        svg.style.cursor = 'grabbing';
+        e.preventDefault();
+      }
+    });
+
+    svg.addEventListener('mousemove', (e) => {
+      if (isDragging && dragStartPoint) {
+        const moveDistance = Math.sqrt(
+          Math.pow(e.clientX - dragStartPoint.x, 2) + 
+          Math.pow(e.clientY - dragStartPoint.y, 2)
+        );
+        
+        if (moveDistance > 5) {
+          hasMoved = true;
+          
+          const scale = currentViewBox[2] / svg.clientWidth;
+          const dx = (dragStartPoint.x - e.clientX) * scale;
+          const dy = (dragStartPoint.y - e.clientY) * scale;
+          
+          const newViewBox = [
+            dragStartViewBox[0] + dx,
+            dragStartViewBox[1] + dy,
+            dragStartViewBox[2],
+            dragStartViewBox[3]
+          ];
+          
+          updateViewBox(newViewBox);
+        }
+      }
+    });
+
+    svg.addEventListener('mouseup', () => {
+      isDragging = false;
+      dragStartPoint = null;
+      svg.style.cursor = 'grab';
+    });
+
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY;
+      const zoomFactor = delta > 0 ? 0.9 : 1.1;
+      zoom(zoomFactor);
+    });
+
+    // 初期化
+    initializeSelector();
+  </script>
+</body>
+</html>
