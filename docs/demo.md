@@ -15,25 +15,13 @@
   }
 </style>
 
-## 利用可能なデモ
-
-### 🎯 インタラクティブデモ（簡易版）
-基本的な機能を確認できる軽量版のデモです。
-
 <div class="demo-container">
   <iframe src="./demo-interactive.html" title="Japan Map Selector Interactive Demo"></iframe>
 </div>
 
-### 🚀 完全機能デモ
-実際のライブラリを使用した全機能が利用可能なデモです。
-
-<div class="demo-container">
-  <iframe src="./demo-complete.html" title="Japan Map Selector Complete Demo"></iframe>
-</div>
-
 ## デモの機能
 
-両方のデモで以下の機能を試すことができます：
+このデモでは以下の機能を試すことができます：
 
 ### 🎨 テーマの切り替え
 8種類のプリセットテーマから選択できます。各テーマは異なる配色とスタイルを提供します。
@@ -52,7 +40,6 @@
 
 ### 📍 特殊な表示
 - 沖縄県は左上に別枠で表示
-- 北方領土は除外
 - 東京都の離島は選択可能（市区町村表示時）
 
 ### 🔍 デバッグモード

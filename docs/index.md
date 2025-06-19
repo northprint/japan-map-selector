@@ -18,7 +18,7 @@ hero:
 
 features:
   - title: 🗾 完全な日本地図
-    details: 47都道府県と市区町村を含む詳細な地図データ。北方領土を除外し、離島の表示切り替えも可能
+    details: 47都道府県と市区町村を含む詳細な地図データ。離島の表示切り替えも可能
   - title: 🎨 カスタマイズ可能
     details: 7種類のプリセットテーマとカスタムテーマのサポート。各都道府県・市区町村の色を個別に設定可能
   - title: ⚡ 高速・軽量
@@ -61,7 +61,7 @@ map.on('prefectureSelected', (prefecture) => {
 ### 📍 正確な地図データ
 - [smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography)の簡略化された地理データを使用
 - 都道府県境界と市区町村境界を正確に表現
-- 北方領土を除外した実用的な地図
+- 実用的で見やすい地図表示
 
 ### 🎨 豊富なテーマ
 - **デフォルト**: シンプルでクリーンなデザイン
