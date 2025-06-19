@@ -180,15 +180,6 @@
         </select>
       </div>
       
-      <div class="control-group">
-        <label for="simplification-select">簡略化レベル</label>
-        <select id="simplification-select">
-          <option value="high">高精度</option>
-          <option value="medium">中精度</option>
-          <option value="low" selected>低精度</option>
-          <option value="ultra-low">超低精度</option>
-        </select>
-      </div>
     </div>
     
     <div class="map-area">
@@ -478,8 +469,11 @@
             
             // 沖縄県の特別処理
             if (isOkinawa) {
-              x = (x - 480) * 2 + 150;
-              y = (y + 150) * 2 + 110;
+              // 沖縄県を左上の枠内に配置
+              const okinawaOffsetX = -450;
+              const okinawaOffsetY = 180;
+              x = (x + okinawaOffsetX) * 2 + 150;
+              y = (y + okinawaOffsetY) * 2 + 110;
             }
             
             pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
@@ -560,7 +554,6 @@
     const hoverInfo = document.getElementById('hover-info');
     const selectionInfo = document.getElementById('selection-info');
     const themeSelect = document.getElementById('theme-select');
-    const simplificationSelect = document.getElementById('simplification-select');
     
     let selector = null;
     let currentViewBox = [0, 0, 800, 600];
@@ -571,11 +564,9 @@
 
     // セレクターを初期化
     async function initializeSelector() {
-      const simplificationLevel = simplificationSelect.value;
-      
       selector = new JapanMapSelector({
         theme: themeSelect.value,
-        simplificationLevel: simplificationLevel,
+        simplificationLevel: 'low',
         onPrefectureSelect: (prefecture) => {
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
         },
@@ -675,6 +666,28 @@
         );
 
         municipalities.forEach(municipality => {
+          // 北方領土の市区町村を除外
+          if (state.selectedPrefecture.code === '01') { // 北海道
+            // 緯度43.5度以北かつ経度145.5度以東の市区町村を除外
+            if (municipality.geometry.type === 'Polygon' || municipality.geometry.type === 'MultiPolygon') {
+              const coords = municipality.geometry.type === 'Polygon' ? 
+                municipality.geometry.coordinates[0] : 
+                municipality.geometry.coordinates[0][0];
+              
+              let sumLng = 0, sumLat = 0;
+              coords.forEach(coord => {
+                sumLng += coord[0];
+                sumLat += coord[1];
+              });
+              const centerLng = sumLng / coords.length;
+              const centerLat = sumLat / coords.length;
+              
+              if (centerLat > 43.5 && centerLng > 145.5) {
+                return; // 北方領土の市区町村をスキップ
+              }
+            }
+          }
+          
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', selector.getMunicipalityPath(municipality));
           path.setAttribute('fill', theme.municipalityFill);
@@ -744,9 +757,6 @@
       selector.setTheme(themeSelect.value);
     });
 
-    simplificationSelect.addEventListener('change', () => {
-      initializeSelector();
-    });
 
     // ドラッグ機能
     svg.addEventListener('mousedown', (e) => {
