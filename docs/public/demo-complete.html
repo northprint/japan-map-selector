@@ -432,9 +432,13 @@
       }
 
       projectPoint(lon, lat) {
-        const scale = 150;
-        const x = (lon - 138) * scale + 400;
-        const y = -(lat - 38) * scale + 300;
+        // 日本の中心座標（より正確な値）
+        const centerLon = 137.5;
+        const centerLat = 37.5;
+        const scale = 120;
+        
+        const x = (lon - centerLon) * scale + 400;
+        const y = -(lat - centerLat) * scale + 350;
         return [x, y];
       }
 
@@ -457,8 +461,8 @@
             
             // 沖縄県の特別処理
             if (isOkinawa) {
-              x = (x - 520) * 0.8 + 210;
-              y = (y - 380) * 0.8 + 510;
+              x = (x - 550) * 1.2 + 210;
+              y = (y - 380) * 1.2 + 500;
             }
             
             pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
@@ -478,7 +482,7 @@
       }
 
       getOkinawaFrame() {
-        return { x: 120, y: 450, width: 180, height: 120 };
+        return { x: 120, y: 430, width: 180, height: 140 };
       }
 
       on(event, callback) {
@@ -565,6 +569,12 @@
       const theme = selector.getTheme();
       svg.style.backgroundColor = theme.backgroundColor;
       backButton.style.display = state.selectedPrefecture ? 'block' : 'none';
+      
+      // ViewBoxを更新
+      if (state.viewBox) {
+        const viewBoxArray = state.viewBox.split(' ').map(Number);
+        updateViewBox(viewBoxArray);
+      }
 
       if (!state.selectedPrefecture) {
         // 沖縄県の枠
