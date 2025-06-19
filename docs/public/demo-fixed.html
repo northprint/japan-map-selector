@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japan Map Selector - Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    #map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    
+    #map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      height: 600px;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      display: block;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 200px 20px;
+      color: #666;
+    }
+    
+    .error {
+      color: #dc3545;
+      text-align: center;
+      padding: 200px 20px;
+    }
+    
+    .info {
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+      text-align: center;
+      color: #495057;
+    }
+    
+    .back-btn {
+      cursor: pointer;
+    }
+    
+    .back-btn rect {
+      fill: white;
+      stroke: #333;
+    }
+    
+    .back-btn:hover rect {
+      fill: #f8f9fa;
+    }
+    
+    .back-btn text {
+      fill: #333;
+      pointer-events: none;
+    }
+    
+    path {
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    
+    .prefecture {
+      fill: #ffffff;
+      stroke: #333333;
+      stroke-width: 0.5;
+    }
+    
+    .prefecture:hover {
+      fill: #e6f3ff;
+    }
+    
+    .municipality {
+      fill: #f0f0f0;
+      stroke: #666666;
+      stroke-width: 0.5;
+    }
+    
+    .municipality:hover {
+      fill: #e6f3ff;
+    }
+    
+    /* 沖縄県用の特別なスタイル */
+    .okinawa-frame {
+      fill: white;
+      stroke: #666;
+      stroke-width: 2;
+      stroke-dasharray: 5,5;
+      pointer-events: none;
+    }
+    
+    .okinawa-label {
+      fill: #333;
+      font-size: 14px;
+      font-weight: bold;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="map-container">
+    <h1>日本地図セレクター デモ</h1>
+    <svg id="map-svg" viewBox="0 0 800 600">
+      <text x="400" y="300" text-anchor="middle" class="loading">データを読み込んでいます...</text>
+    </svg>
+    <div id="info" class="info">地図データを読み込んでいます...</div>
+  </div>
+
+  <script>
+    // グローバル変数
+    let prefecturesData = null;
+    let municipalitiesData = null;
+    let selectedPrefecture = null;
+    let currentView = 'japan'; // 'japan' or 'prefecture'
+    
+    // UI要素
+    const svgEl = document.getElementById('map-svg');
+    const infoEl = document.getElementById('info');
+    
+    // 日本地図の投影設定（改善版）
+    const projection = {
+      scale: 150,
+      translateX: 400,
+      translateY: 300
+    };
+    
+    // 座標変換（改善版）
+    function projectPoint(lon, lat) {
+      // 日本の中心座標を基準に調整
+      const x = (lon - 138) * projection.scale + projection.translateX;
+      const y = -(lat - 38) * projection.scale + projection.translateY;
+      return [x, y];
+    }
+    
+    // GeoJSONからSVGパスへ変換
+    function geoJsonToPath(geometry) {
+      let pathData = '';
+      
+      const processRing = (ring) => {
+        ring.forEach((coord, index) => {
+          const [x, y] = projectPoint(coord[0], coord[1]);
+          pathData += (index === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+        });
+        pathData += 'Z ';
+      };
+      
+      if (geometry.type === 'Polygon') {
+        geometry.coordinates.forEach(processRing);
+      } else if (geometry.type === 'MultiPolygon') {
+        geometry.coordinates.forEach(polygon => {
+          polygon.forEach(processRing);
+        });
+      }
+      
+      return pathData;
+    }
+    
+    // 都道府県コードを取得
+    function getPrefectureCode(feature) {
+      // N03_007（市区町村コード）から都道府県コードを抽出
+      if (feature.properties.N03_007) {
+        return feature.properties.N03_007.substring(0, 2);
+      }
+      // 都道府県データの場合はN03_001から判定
+      const prefectureMap = {
+        '北海道': '01', '青森県': '02', '岩手県': '03', '宮城県': '04', '秋田県': '05',
+        '山形県': '06', '福島県': '07', '茨城県': '08', '栃木県': '09', '群馬県': '10',
+        '埼玉県': '11', '千葉県': '12', '東京都': '13', '神奈川県': '14', '新潟県': '15',
+        '富山県': '16', '石川県': '17', '福井県': '18', '山梨県': '19', '長野県': '20',
+        '岐阜県': '21', '静岡県': '22', '愛知県': '23', '三重県': '24', '滋賀県': '25',
+        '京都府': '26', '大阪府': '27', '兵庫県': '28', '奈良県': '29', '和歌山県': '30',
+        '鳥取県': '31', '島根県': '32', '岡山県': '33', '広島県': '34', '山口県': '35',
+        '徳島県': '36', '香川県': '37', '愛媛県': '38', '高知県': '39', '福岡県': '40',
+        '佐賀県': '41', '長崎県': '42', '熊本県': '43', '大分県': '44', '宮崎県': '45',
+        '鹿児島県': '46', '沖縄県': '47'
+      };
+      return prefectureMap[feature.properties.N03_001] || null;
+    }
+    
+    // 都道府県を描画
+    function renderPrefectures() {
+      svgEl.innerHTML = '';
+      currentView = 'japan';
+      selectedPrefecture = null;
+      svgEl.setAttribute('viewBox', '0 0 800 600');
+      infoEl.textContent = '都道府県をクリックして選択してください';
+      
+      // 沖縄県の枠を先に描画
+      const okinawaFrame = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      
+      const frameRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      frameRect.setAttribute('x', '120');
+      frameRect.setAttribute('y', '450');
+      frameRect.setAttribute('width', '180');
+      frameRect.setAttribute('height', '120');
+      frameRect.setAttribute('rx', '5');
+      frameRect.setAttribute('ry', '5');
+      frameRect.classList.add('okinawa-frame');
+      
+      const frameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      frameText.setAttribute('x', '210');
+      frameText.setAttribute('y', '470');
+      frameText.setAttribute('text-anchor', 'middle');
+      frameText.classList.add('okinawa-label');
+      frameText.textContent = '沖縄県';
+      
+      okinawaFrame.appendChild(frameRect);
+      okinawaFrame.appendChild(frameText);
+      svgEl.appendChild(okinawaFrame);
+      
+      // 都道府県をグループ化
+      const prefectureGroups = {};
+      
+      prefecturesData.features.forEach(feature => {
+        const prefCode = getPrefectureCode(feature);
+        const prefName = feature.properties.N03_001;
+        
+        if (prefCode && prefName) {
+          if (!prefectureGroups[prefCode]) {
+            prefectureGroups[prefCode] = {
+              code: prefCode,
+              name: prefName,
+              features: []
+            };
+          }
+          prefectureGroups[prefCode].features.push(feature);
+        }
+      });
+      
+      // 各都道府県を描画
+      Object.values(prefectureGroups).forEach(group => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        group.features.forEach(feature => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          let pathData;
+          
+          // 沖縄県の特別処理
+          if (group.code === '47') {
+            // 沖縄県を左下に配置
+            const originalPath = geoJsonToPath(feature.geometry);
+            // 座標を変換
+            pathData = originalPath.replace(/([0-9.-]+),([0-9.-]+)/g, (match, x, y) => {
+              const newX = (parseFloat(x) - 520) * 0.8 + 210;
+              const newY = (parseFloat(y) - 380) * 0.8 + 510;
+              return `${newX},${newY}`;
+            });
+          } else {
+            pathData = geoJsonToPath(feature.geometry);
+          }
+          
+          if (pathData) {
+            path.setAttribute('d', pathData);
+            path.classList.add('prefecture');
+            g.appendChild(path);
+          }
+        });
+        
+        // グループ全体にクリックイベントを設定
+        g.addEventListener('click', () => {
+          selectedPrefecture = {
+            code: group.code,
+            name: group.name
+          };
+          infoEl.textContent = `選択中: ${group.name}`;
+          renderMunicipalities(group.code);
+        });
+        
+        svgEl.appendChild(g);
+      });
+    }
+    
+    // 市区町村を描画
+    function renderMunicipalities(prefectureCode) {
+      svgEl.innerHTML = '';
+      currentView = 'prefecture';
+      
+      // 戻るボタン
+      const backBtn = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      backBtn.classList.add('back-btn');
+      
+      const btnRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      btnRect.setAttribute('x', '10');
+      btnRect.setAttribute('y', '10');
+      btnRect.setAttribute('width', '100');
+      btnRect.setAttribute('height', '30');
+      btnRect.setAttribute('rx', '4');
+      
+      const btnText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      btnText.setAttribute('x', '60');
+      btnText.setAttribute('y', '30');
+      btnText.setAttribute('text-anchor', 'middle');
+      btnText.setAttribute('font-size', '14');
+      btnText.textContent = '← 全国へ戻る';
+      
+      backBtn.appendChild(btnRect);
+      backBtn.appendChild(btnText);
+      backBtn.addEventListener('click', renderPrefectures);
+      svgEl.appendChild(backBtn);
+      
+      // 選択された都道府県の市区町村をフィルター
+      const municipalities = municipalitiesData.features.filter(feature => {
+        const code = feature.properties.N03_007;
+        return code && code.substring(0, 2) === prefectureCode;
+      });
+      
+      if (municipalities.length === 0) {
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '400');
+        text.setAttribute('y', '300');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', '#666');
+        text.textContent = '市区町村データが見つかりません';
+        svgEl.appendChild(text);
+        return;
+      }
+      
+      // ViewBoxを計算
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      municipalities.forEach(feature => {
+        const updateBounds = (coord) => {
+          const [x, y] = projectPoint(coord[0], coord[1]);
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+        };
+        
+        const processGeometry = (geometry) => {
+          if (geometry.type === 'Polygon') {
+            geometry.coordinates.forEach(ring => {
+              ring.forEach(updateBounds);
+            });
+          } else if (geometry.type === 'MultiPolygon') {
+            geometry.coordinates.forEach(polygon => {
+              polygon.forEach(ring => {
+                ring.forEach(updateBounds);
+              });
+            });
+          }
+        };
+        
+        processGeometry(feature.geometry);
+      });
+      
+      // ViewBoxを設定（余白を追加）
+      const padding = 20;
+      const width = maxX - minX + padding * 2;
+      const height = maxY - minY + padding * 2;
+      svgEl.setAttribute('viewBox', `${minX - padding} ${minY - padding} ${width} ${height}`);
+      
+      // 市区町村を描画
+      municipalities.forEach(feature => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const pathData = geoJsonToPath(feature.geometry);
+        
+        if (pathData) {
+          path.setAttribute('d', pathData);
+          path.classList.add('municipality');
+          
+          const muniName = feature.properties.N03_004 || feature.properties.N03_003 || '';
+          
+          // クリックイベント
+          path.addEventListener('click', () => {
+            infoEl.textContent = `選択中: ${selectedPrefecture.name} - ${muniName}`;
+          });
+          
+          svgEl.appendChild(path);
+        }
+      });
+    }
+    
+    // データを読み込み
+    async function loadData() {
+      try {
+        const baseUrl = 'https://raw.githubusercontent.com/northprint/japan-map-selector/main/src/data/simplified';
+        
+        const [prefRes, muniRes] = await Promise.all([
+          fetch(`${baseUrl}/prefectures-low.geojson`),
+          fetch(`${baseUrl}/municipalities-low.geojson`)
+        ]);
+        
+        if (!prefRes.ok || !muniRes.ok) {
+          throw new Error('データの読み込みに失敗しました');
+        }
+        
+        prefecturesData = await prefRes.json();
+        municipalitiesData = await muniRes.json();
+        
+        console.log('Data loaded successfully:', {
+          prefectures: prefecturesData.features.length,
+          municipalities: municipalitiesData.features.length
+        });
+        
+        // 都道府県を描画
+        renderPrefectures();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        svgEl.innerHTML = `<text x="400" y="300" text-anchor="middle" class="error">データの読み込みに失敗しました</text>`;
+        infoEl.textContent = 'エラーが発生しました';
+      }
+    }
+    
+    // 初期化
+    loadData();
+  </script>
+</body>
+</html>

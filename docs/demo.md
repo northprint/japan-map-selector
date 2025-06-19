@@ -16,7 +16,7 @@
 </style>
 
 <div class="demo-container">
-  <iframe src="./demo-simple.html" title="Japan Map Selector Interactive Demo"></iframe>
+  <iframe src="./demo-fixed.html" title="Japan Map Selector Interactive Demo"></iframe>
 </div>
 
 ## デモの機能
