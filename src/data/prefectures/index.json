@@ -1,0 +1,334 @@
+{
+  "description": "都道府県コードから市区町村データファイルへのマッピング",
+  "prefectures": {
+    "10": {
+      "original": "10/municipalities.geojson",
+      "high": "10/municipalities-high.geojson",
+      "medium": "10/municipalities-medium.geojson",
+      "low": "10/municipalities-low.geojson",
+      "ultra-low": "10/municipalities-ultra-low.geojson"
+    },
+    "11": {
+      "original": "11/municipalities.geojson",
+      "high": "11/municipalities-high.geojson",
+      "medium": "11/municipalities-medium.geojson",
+      "low": "11/municipalities-low.geojson",
+      "ultra-low": "11/municipalities-ultra-low.geojson"
+    },
+    "12": {
+      "original": "12/municipalities.geojson",
+      "high": "12/municipalities-high.geojson",
+      "medium": "12/municipalities-medium.geojson",
+      "low": "12/municipalities-low.geojson",
+      "ultra-low": "12/municipalities-ultra-low.geojson"
+    },
+    "13": {
+      "original": "13/municipalities.geojson",
+      "high": "13/municipalities-high.geojson",
+      "medium": "13/municipalities-medium.geojson",
+      "low": "13/municipalities-low.geojson",
+      "ultra-low": "13/municipalities-ultra-low.geojson"
+    },
+    "14": {
+      "original": "14/municipalities.geojson",
+      "high": "14/municipalities-high.geojson",
+      "medium": "14/municipalities-medium.geojson",
+      "low": "14/municipalities-low.geojson",
+      "ultra-low": "14/municipalities-ultra-low.geojson"
+    },
+    "15": {
+      "original": "15/municipalities.geojson",
+      "high": "15/municipalities-high.geojson",
+      "medium": "15/municipalities-medium.geojson",
+      "low": "15/municipalities-low.geojson",
+      "ultra-low": "15/municipalities-ultra-low.geojson"
+    },
+    "16": {
+      "original": "16/municipalities.geojson",
+      "high": "16/municipalities-high.geojson",
+      "medium": "16/municipalities-medium.geojson",
+      "low": "16/municipalities-low.geojson",
+      "ultra-low": "16/municipalities-ultra-low.geojson"
+    },
+    "17": {
+      "original": "17/municipalities.geojson",
+      "high": "17/municipalities-high.geojson",
+      "medium": "17/municipalities-medium.geojson",
+      "low": "17/municipalities-low.geojson",
+      "ultra-low": "17/municipalities-ultra-low.geojson"
+    },
+    "18": {
+      "original": "18/municipalities.geojson",
+      "high": "18/municipalities-high.geojson",
+      "medium": "18/municipalities-medium.geojson",
+      "low": "18/municipalities-low.geojson",
+      "ultra-low": "18/municipalities-ultra-low.geojson"
+    },
+    "19": {
+      "original": "19/municipalities.geojson",
+      "high": "19/municipalities-high.geojson",
+      "medium": "19/municipalities-medium.geojson",
+      "low": "19/municipalities-low.geojson",
+      "ultra-low": "19/municipalities-ultra-low.geojson"
+    },
+    "20": {
+      "original": "20/municipalities.geojson",
+      "high": "20/municipalities-high.geojson",
+      "medium": "20/municipalities-medium.geojson",
+      "low": "20/municipalities-low.geojson",
+      "ultra-low": "20/municipalities-ultra-low.geojson"
+    },
+    "21": {
+      "original": "21/municipalities.geojson",
+      "high": "21/municipalities-high.geojson",
+      "medium": "21/municipalities-medium.geojson",
+      "low": "21/municipalities-low.geojson",
+      "ultra-low": "21/municipalities-ultra-low.geojson"
+    },
+    "22": {
+      "original": "22/municipalities.geojson",
+      "high": "22/municipalities-high.geojson",
+      "medium": "22/municipalities-medium.geojson",
+      "low": "22/municipalities-low.geojson",
+      "ultra-low": "22/municipalities-ultra-low.geojson"
+    },
+    "23": {
+      "original": "23/municipalities.geojson",
+      "high": "23/municipalities-high.geojson",
+      "medium": "23/municipalities-medium.geojson",
+      "low": "23/municipalities-low.geojson",
+      "ultra-low": "23/municipalities-ultra-low.geojson"
+    },
+    "24": {
+      "original": "24/municipalities.geojson",
+      "high": "24/municipalities-high.geojson",
+      "medium": "24/municipalities-medium.geojson",
+      "low": "24/municipalities-low.geojson",
+      "ultra-low": "24/municipalities-ultra-low.geojson"
+    },
+    "25": {
+      "original": "25/municipalities.geojson",
+      "high": "25/municipalities-high.geojson",
+      "medium": "25/municipalities-medium.geojson",
+      "low": "25/municipalities-low.geojson",
+      "ultra-low": "25/municipalities-ultra-low.geojson"
+    },
+    "26": {
+      "original": "26/municipalities.geojson",
+      "high": "26/municipalities-high.geojson",
+      "medium": "26/municipalities-medium.geojson",
+      "low": "26/municipalities-low.geojson",
+      "ultra-low": "26/municipalities-ultra-low.geojson"
+    },
+    "27": {
+      "original": "27/municipalities.geojson",
+      "high": "27/municipalities-high.geojson",
+      "medium": "27/municipalities-medium.geojson",
+      "low": "27/municipalities-low.geojson",
+      "ultra-low": "27/municipalities-ultra-low.geojson"
+    },
+    "28": {
+      "original": "28/municipalities.geojson",
+      "high": "28/municipalities-high.geojson",
+      "medium": "28/municipalities-medium.geojson",
+      "low": "28/municipalities-low.geojson",
+      "ultra-low": "28/municipalities-ultra-low.geojson"
+    },
+    "29": {
+      "original": "29/municipalities.geojson",
+      "high": "29/municipalities-high.geojson",
+      "medium": "29/municipalities-medium.geojson",
+      "low": "29/municipalities-low.geojson",
+      "ultra-low": "29/municipalities-ultra-low.geojson"
+    },
+    "30": {
+      "original": "30/municipalities.geojson",
+      "high": "30/municipalities-high.geojson",
+      "medium": "30/municipalities-medium.geojson",
+      "low": "30/municipalities-low.geojson",
+      "ultra-low": "30/municipalities-ultra-low.geojson"
+    },
+    "31": {
+      "original": "31/municipalities.geojson",
+      "high": "31/municipalities-high.geojson",
+      "medium": "31/municipalities-medium.geojson",
+      "low": "31/municipalities-low.geojson",
+      "ultra-low": "31/municipalities-ultra-low.geojson"
+    },
+    "32": {
+      "original": "32/municipalities.geojson",
+      "high": "32/municipalities-high.geojson",
+      "medium": "32/municipalities-medium.geojson",
+      "low": "32/municipalities-low.geojson",
+      "ultra-low": "32/municipalities-ultra-low.geojson"
+    },
+    "33": {
+      "original": "33/municipalities.geojson",
+      "high": "33/municipalities-high.geojson",
+      "medium": "33/municipalities-medium.geojson",
+      "low": "33/municipalities-low.geojson",
+      "ultra-low": "33/municipalities-ultra-low.geojson"
+    },
+    "34": {
+      "original": "34/municipalities.geojson",
+      "high": "34/municipalities-high.geojson",
+      "medium": "34/municipalities-medium.geojson",
+      "low": "34/municipalities-low.geojson",
+      "ultra-low": "34/municipalities-ultra-low.geojson"
+    },
+    "35": {
+      "original": "35/municipalities.geojson",
+      "high": "35/municipalities-high.geojson",
+      "medium": "35/municipalities-medium.geojson",
+      "low": "35/municipalities-low.geojson",
+      "ultra-low": "35/municipalities-ultra-low.geojson"
+    },
+    "36": {
+      "original": "36/municipalities.geojson",
+      "high": "36/municipalities-high.geojson",
+      "medium": "36/municipalities-medium.geojson",
+      "low": "36/municipalities-low.geojson",
+      "ultra-low": "36/municipalities-ultra-low.geojson"
+    },
+    "37": {
+      "original": "37/municipalities.geojson",
+      "high": "37/municipalities-high.geojson",
+      "medium": "37/municipalities-medium.geojson",
+      "low": "37/municipalities-low.geojson",
+      "ultra-low": "37/municipalities-ultra-low.geojson"
+    },
+    "38": {
+      "original": "38/municipalities.geojson",
+      "high": "38/municipalities-high.geojson",
+      "medium": "38/municipalities-medium.geojson",
+      "low": "38/municipalities-low.geojson",
+      "ultra-low": "38/municipalities-ultra-low.geojson"
+    },
+    "39": {
+      "original": "39/municipalities.geojson",
+      "high": "39/municipalities-high.geojson",
+      "medium": "39/municipalities-medium.geojson",
+      "low": "39/municipalities-low.geojson",
+      "ultra-low": "39/municipalities-ultra-low.geojson"
+    },
+    "40": {
+      "original": "40/municipalities.geojson",
+      "high": "40/municipalities-high.geojson",
+      "medium": "40/municipalities-medium.geojson",
+      "low": "40/municipalities-low.geojson",
+      "ultra-low": "40/municipalities-ultra-low.geojson"
+    },
+    "41": {
+      "original": "41/municipalities.geojson",
+      "high": "41/municipalities-high.geojson",
+      "medium": "41/municipalities-medium.geojson",
+      "low": "41/municipalities-low.geojson",
+      "ultra-low": "41/municipalities-ultra-low.geojson"
+    },
+    "42": {
+      "original": "42/municipalities.geojson",
+      "high": "42/municipalities-high.geojson",
+      "medium": "42/municipalities-medium.geojson",
+      "low": "42/municipalities-low.geojson",
+      "ultra-low": "42/municipalities-ultra-low.geojson"
+    },
+    "43": {
+      "original": "43/municipalities.geojson",
+      "high": "43/municipalities-high.geojson",
+      "medium": "43/municipalities-medium.geojson",
+      "low": "43/municipalities-low.geojson",
+      "ultra-low": "43/municipalities-ultra-low.geojson"
+    },
+    "44": {
+      "original": "44/municipalities.geojson",
+      "high": "44/municipalities-high.geojson",
+      "medium": "44/municipalities-medium.geojson",
+      "low": "44/municipalities-low.geojson",
+      "ultra-low": "44/municipalities-ultra-low.geojson"
+    },
+    "45": {
+      "original": "45/municipalities.geojson",
+      "high": "45/municipalities-high.geojson",
+      "medium": "45/municipalities-medium.geojson",
+      "low": "45/municipalities-low.geojson",
+      "ultra-low": "45/municipalities-ultra-low.geojson"
+    },
+    "46": {
+      "original": "46/municipalities.geojson",
+      "high": "46/municipalities-high.geojson",
+      "medium": "46/municipalities-medium.geojson",
+      "low": "46/municipalities-low.geojson",
+      "ultra-low": "46/municipalities-ultra-low.geojson"
+    },
+    "47": {
+      "original": "47/municipalities.geojson",
+      "high": "47/municipalities-high.geojson",
+      "medium": "47/municipalities-medium.geojson",
+      "low": "47/municipalities-low.geojson",
+      "ultra-low": "47/municipalities-ultra-low.geojson"
+    },
+    "01": {
+      "original": "01/municipalities.geojson",
+      "high": "01/municipalities-high.geojson",
+      "medium": "01/municipalities-medium.geojson",
+      "low": "01/municipalities-low.geojson",
+      "ultra-low": "01/municipalities-ultra-low.geojson"
+    },
+    "02": {
+      "original": "02/municipalities.geojson",
+      "high": "02/municipalities-high.geojson",
+      "medium": "02/municipalities-medium.geojson",
+      "low": "02/municipalities-low.geojson",
+      "ultra-low": "02/municipalities-ultra-low.geojson"
+    },
+    "03": {
+      "original": "03/municipalities.geojson",
+      "high": "03/municipalities-high.geojson",
+      "medium": "03/municipalities-medium.geojson",
+      "low": "03/municipalities-low.geojson",
+      "ultra-low": "03/municipalities-ultra-low.geojson"
+    },
+    "04": {
+      "original": "04/municipalities.geojson",
+      "high": "04/municipalities-high.geojson",
+      "medium": "04/municipalities-medium.geojson",
+      "low": "04/municipalities-low.geojson",
+      "ultra-low": "04/municipalities-ultra-low.geojson"
+    },
+    "05": {
+      "original": "05/municipalities.geojson",
+      "high": "05/municipalities-high.geojson",
+      "medium": "05/municipalities-medium.geojson",
+      "low": "05/municipalities-low.geojson",
+      "ultra-low": "05/municipalities-ultra-low.geojson"
+    },
+    "06": {
+      "original": "06/municipalities.geojson",
+      "high": "06/municipalities-high.geojson",
+      "medium": "06/municipalities-medium.geojson",
+      "low": "06/municipalities-low.geojson",
+      "ultra-low": "06/municipalities-ultra-low.geojson"
+    },
+    "07": {
+      "original": "07/municipalities.geojson",
+      "high": "07/municipalities-high.geojson",
+      "medium": "07/municipalities-medium.geojson",
+      "low": "07/municipalities-low.geojson",
+      "ultra-low": "07/municipalities-ultra-low.geojson"
+    },
+    "08": {
+      "original": "08/municipalities.geojson",
+      "high": "08/municipalities-high.geojson",
+      "medium": "08/municipalities-medium.geojson",
+      "low": "08/municipalities-low.geojson",
+      "ultra-low": "08/municipalities-ultra-low.geojson"
+    },
+    "09": {
+      "original": "09/municipalities.geojson",
+      "high": "09/municipalities-high.geojson",
+      "medium": "09/municipalities-medium.geojson",
+      "low": "09/municipalities-low.geojson",
+      "ultra-low": "09/municipalities-ultra-low.geojson"
+    }
+  }
+}

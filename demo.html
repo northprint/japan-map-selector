@@ -261,8 +261,8 @@
         <select id="simplification-select">
           <option value="original">オリジナル (100%)</option>
           <option value="high">高精度 (18%)</option>
-          <option value="medium" selected>中精度 (9%)</option>
-          <option value="low">低精度 (8%)</option>
+          <option value="medium">中精度 (9%)</option>
+          <option value="low" selected>低精度 (8%)</option>
           <option value="ultra-low">超低精度 (4%)</option>
         </select>
       </div>
@@ -388,7 +388,17 @@
     let selector = null;
     let currentTheme = 'default';
     let currentSelectablePrefectures = undefined;
-    let currentSimplificationLevel = 'medium';
+    let currentSimplificationLevel = 'low'; // デフォルトを低精度に変更
+    
+    // 都道府県別データロードの有効/無効
+    let enableDynamicLoading = false;
+    
+    // URLパラメータで動的ローディングを有効化 (?dynamic=1)
+    const enableDynamic = urlParams.get('dynamic') === '1';
+    if (enableDynamic) {
+      enableDynamicLoading = true;
+      debug('動的データローディングを有効化');
+    }
     
     // セレクターの初期化関数
     async function initializeSelector() {
@@ -407,6 +417,8 @@
         disabledPrefectureFill: '#e0e0e0',
         disabledPrefectureStroke: '#aaaaaa',
         simplificationLevel: currentSimplificationLevel,
+        enableDynamicLoading: enableDynamicLoading,
+        dynamicDataBaseUrl: './src/data',
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
@@ -414,6 +426,13 @@
         onMunicipalitySelect: (municipality) => {
           debug(`onMunicipalitySelect: ${municipality.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${municipality.name}</strong></p>`;
+        },
+        onMunicipalityLoadStart: (prefecture) => {
+          debug(`市区町村データを読み込み中: ${prefecture.name}`);
+          selectionInfo.innerHTML = `<p>${prefecture.name}の市区町村データを読み込んでいます...</p>`;
+        },
+        onMunicipalityLoadEnd: (prefecture) => {
+          debug(`市区町村データ読み込み完了: ${prefecture.name}`);
         }
       });
       
@@ -462,7 +481,10 @@
           selector.setTheme(currentTheme);
         }
         
-        selectionInfo.innerHTML = '<p>都道府県をクリックして選択してください。</p>';
+        const loadingMessage = enableDynamicLoading 
+          ? '<p>都道府県をクリックして選択してください。<br><small>（市区町村データは選択時に読み込まれます）</small></p>'
+          : '<p>都道府県をクリックして選択してください。</p>';
+        selectionInfo.innerHTML = loadingMessage;
         render(selector.getState());
       } catch (error) {
         debug(`エラー: ${error.message}`);
@@ -681,10 +703,10 @@
           path.setAttribute('stroke-width', theme.strokeWidth.toString());
           path.classList.add('prefecture-path');
           
-          path.addEventListener('click', (e) => {
+          path.addEventListener('click', async (e) => {
             if (hasMoved) return;
             e.stopPropagation();
-            selector.selectPrefecture(prefecture.code);
+            await selector.selectPrefecture(prefecture.code);
           });
           
           path.addEventListener('mouseenter', () => {

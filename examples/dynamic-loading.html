@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>都道府県別データ動的読み込みのデモ</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    .description {
+      color: #666;
+      margin-bottom: 20px;
+    }
+    
+    .map-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    #map-svg {
+      background: #f8f8f8;
+      width: 100%;
+      height: 600px;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+    }
+    
+    .status {
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .loading {
+      color: #0066cc;
+    }
+    
+    .loaded {
+      color: #28a745;
+    }
+    
+    .cache-info {
+      padding: 15px;
+      background: #e9ecef;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .prefecture-path {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+    
+    .municipality-path {
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+    
+    .attribution {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    }
+    
+    .attribution a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0066cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>都道府県別データ動的読み込みのデモ</h1>
+    <p class="description">
+      都道府県を選択すると、その都道府県の市区町村データのみを動的に読み込みます。<br>
+      初回ロードが高速で、必要なデータのみを取得するため効率的です。
+    </p>
+    
+    <div class="status" id="status">
+      <strong>ステータス:</strong> <span id="status-text">初期化中...</span>
+    </div>
+    
+    <div class="map-container">
+      <svg id="map-svg" viewBox="0 0 800 600"></svg>
+    </div>
+    
+    <div class="cache-info">
+      <strong>キャッシュ情報:</strong><br>
+      <span id="cache-info">キャッシュなし</span>
+    </div>
+    
+    <div class="attribution">
+      地図データ：<a href="https://nlftp.mlit.go.jp/ksj/index.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成
+    </div>
+  </div>
+
+  <script type="module">
+    import { JapanMapSelector } from '../dist/index.es.js';
+    
+    const svg = document.getElementById('map-svg');
+    const statusText = document.getElementById('status-text');
+    const cacheInfo = document.getElementById('cache-info');
+    
+    // ローディング表示を更新
+    function updateStatus(text, isLoading = false) {
+      if (isLoading) {
+        statusText.innerHTML = `<span class="spinner"></span><span class="loading">${text}</span>`;
+      } else {
+        statusText.innerHTML = `<span class="loaded">${text}</span>`;
+      }
+    }
+    
+    // キャッシュ情報を更新
+    function updateCacheInfo(selector) {
+      // 実際の実装では getCacheInfo() メソッドを使用
+      // ここではデモ用の簡易実装
+      const selectedPrefecture = selector.getState().selectedPrefecture;
+      if (selectedPrefecture) {
+        cacheInfo.textContent = `読み込み済み: ${selectedPrefecture.name}`;
+      } else {
+        cacheInfo.textContent = 'キャッシュなし';
+      }
+    }
+    
+    // セレクターを初期化
+    const selector = new JapanMapSelector({
+      width: 800,
+      height: 600,
+      theme: 'default',
+      enableDynamicLoading: true, // 動的ローディングを有効化
+      dynamicDataBaseUrl: './src/data',
+      simplificationLevel: 'low', // 低精度で高速化
+      onPrefectureSelect: (prefecture) => {
+        console.log('選択された都道府県:', prefecture.name);
+      },
+      onMunicipalitySelect: (municipality) => {
+        console.log('選択された市区町村:', municipality.name);
+        updateStatus(`${municipality.name}が選択されました`);
+      },
+      onMunicipalityLoadStart: (prefecture) => {
+        updateStatus(`${prefecture.name}の市区町村データを読み込んでいます...`, true);
+      },
+      onMunicipalityLoadEnd: (prefecture) => {
+        updateStatus(`${prefecture.name}の市区町村データを読み込みました`);
+        updateCacheInfo(selector);
+      }
+    });
+    
+    // データを初期化（都道府県のみ読み込む）
+    updateStatus('都道府県データを読み込んでいます...', true);
+    
+    try {
+      await selector.initialize(
+        './src/data/simplified/prefectures-low.geojson',
+        '' // 市区町村データのURLは空でOK（動的ローディング有効時）
+      );
+      
+      updateStatus('準備完了 - 都道府県をクリックしてください');
+      
+      // 状態変更を監視
+      selector.on('stateChanged', (state) => {
+        render(state);
+      });
+      
+      // 初回レンダリング
+      render(selector.getState());
+      
+    } catch (error) {
+      console.error('初期化エラー:', error);
+      updateStatus('エラーが発生しました', false);
+    }
+    
+    // レンダリング関数
+    function render(state) {
+      const theme = selector.getTheme();
+      svg.style.backgroundColor = theme.backgroundColor;
+      
+      // SVGをクリア
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
+      
+      if (!state.selectedPrefecture) {
+        // 全国表示
+        const prefectures = selector.getPrefectures();
+        
+        prefectures.forEach(prefecture => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getPrefecturePath(prefecture));
+          
+          const fillColor = state.hoveredPrefecture?.code === prefecture.code 
+            ? theme.prefectureHoverFill 
+            : selector.getPrefectureFillColor(prefecture);
+          
+          path.setAttribute('fill', fillColor);
+          path.setAttribute('stroke', theme.prefectureStroke);
+          path.setAttribute('stroke-width', theme.strokeWidth.toString());
+          path.classList.add('prefecture-path');
+          
+          // クリックイベント（非同期）
+          path.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await selector.selectPrefecture(prefecture.code);
+          });
+          
+          // ホバーイベント
+          path.addEventListener('mouseenter', () => {
+            selector.hoverPrefecture(prefecture.code);
+          });
+          
+          path.addEventListener('mouseleave', () => {
+            selector.hoverPrefecture(null);
+          });
+          
+          // ツールチップ
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = prefecture.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+        
+      } else {
+        // 市区町村表示
+        const municipalities = selector.getSelectedMunicipalities();
+        
+        municipalities.forEach(municipality => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', selector.getMunicipalityPath(municipality));
+          
+          const fillColor = state.hoveredMunicipality?.code === municipality.code 
+            ? selector.getMunicipalityHoverFillColor(municipality)
+            : selector.getMunicipalityFillColor(municipality);
+          
+          path.setAttribute('fill', fillColor);
+          path.setAttribute('stroke', theme.municipalityStroke);
+          path.setAttribute('stroke-width', theme.strokeWidth.toString());
+          path.classList.add('municipality-path');
+          
+          // クリックイベント
+          path.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selector.selectMunicipality(municipality.code);
+          });
+          
+          // ホバーイベント
+          path.addEventListener('mouseenter', () => {
+            selector.hoverMunicipality(municipality.code);
+          });
+          
+          path.addEventListener('mouseleave', () => {
+            selector.hoverMunicipality(null);
+          });
+          
+          // ツールチップ
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = municipality.name;
+          path.appendChild(title);
+          
+          svg.appendChild(path);
+        });
+        
+        // 戻るボタン
+        const backButton = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        backButton.style.cursor = 'pointer';
+        
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', '10');
+        rect.setAttribute('y', '10');
+        rect.setAttribute('width', '100');
+        rect.setAttribute('height', '30');
+        rect.setAttribute('fill', 'white');
+        rect.setAttribute('stroke', '#ccc');
+        rect.setAttribute('rx', '4');
+        
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', '60');
+        text.setAttribute('y', '30');
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('font-size', '14');
+        text.setAttribute('fill', '#333');
+        text.textContent = '← 全国へ';
+        
+        backButton.appendChild(rect);
+        backButton.appendChild(text);
+        
+        backButton.addEventListener('click', () => {
+          selector.resetView();
+          updateStatus('準備完了 - 都道府県をクリックしてください');
+          updateCacheInfo(selector);
+        });
+        
+        svg.appendChild(backButton);
+      }
+    }
+  </script>
+</body>
+</html>

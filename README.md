@@ -5,6 +5,7 @@ Interactive Japan map component for selecting prefectures and municipalities. Bu
 [日本語版はこちら](#日本語)
 
 ![npm version](https://img.shields.io/npm/v/japan-map-selector.svg)
+![Bundle Size](https://img.shields.io/badge/bundle%20size-~200KB-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0%2B-blue.svg)
 
@@ -163,6 +164,57 @@ For other precision levels, install additional packages:
 | Ultra Low | `npm install japan-map-selector-data-ultra-low` | ~696KB | Previews |
 
 **Note: These optional packages are not yet published. For now, only medium precision data is available.**
+
+## Performance Optimization
+
+### Option 1: Use Low Precision Data
+
+For faster initial load times, use low precision data:
+
+```javascript
+// Use low precision data (60% smaller, loads 2-3x faster)
+await map.initialize(
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-low.geojson',
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-low.geojson'
+);
+```
+
+Benefits:
+- **File size**: ~1.3MB (vs 2.3MB for medium precision)
+- **Initial load**: 1-2 seconds (vs 3-5 seconds)
+- **Cached load**: 0.1-0.3 seconds
+- **Visual quality**: Good for most use cases
+
+### Option 2: Dynamic Prefecture-based Loading (v0.2.0+)
+
+Load municipality data only when a prefecture is selected:
+
+```javascript
+const selector = new JapanMapSelector({
+  width: 800,
+  height: 600,
+  enableDynamicLoading: true, // Enable dynamic loading
+  dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@latest/src/data',
+  onMunicipalityLoadStart: (prefecture) => {
+    console.log(`Loading ${prefecture.name} municipalities...`);
+  },
+  onMunicipalityLoadEnd: (prefecture) => {
+    console.log(`Loaded ${prefecture.name} municipalities`);
+  }
+});
+
+// Initialize with prefecture data only
+await selector.initialize(
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-low.geojson',
+  '' // Municipality URL can be empty with dynamic loading
+);
+```
+
+Benefits:
+- **Initial load**: ~100KB (prefectures only)
+- **Per-prefecture load**: 10-200KB (on demand)
+- **Total bandwidth**: Only loads what's needed
+- **Memory efficient**: Unloaded data doesn't consume memory
 
 ## API Reference
 

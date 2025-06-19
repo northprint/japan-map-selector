@@ -1,0 +1,1257 @@
+{
+  "prefectures": {
+    "10": {
+      "name": "群馬県",
+      "municipalityCount": 35,
+      "files": {
+        "high": {
+          "path": "prefectures/10/municipalities-high.geojson",
+          "size": 64367,
+          "features": 35
+        },
+        "medium": {
+          "path": "prefectures/10/municipalities-medium.geojson",
+          "size": 38167,
+          "features": 35
+        },
+        "low": {
+          "path": "prefectures/10/municipalities-low.geojson",
+          "size": 22868,
+          "features": 35
+        },
+        "ultra-low": {
+          "path": "prefectures/10/municipalities-ultra-low.geojson",
+          "size": 12958,
+          "features": 35
+        }
+      }
+    },
+    "11": {
+      "name": "埼玉県",
+      "municipalityCount": 72,
+      "files": {
+        "high": {
+          "path": "prefectures/11/municipalities-high.geojson",
+          "size": 78214,
+          "features": 72
+        },
+        "medium": {
+          "path": "prefectures/11/municipalities-medium.geojson",
+          "size": 49049,
+          "features": 72
+        },
+        "low": {
+          "path": "prefectures/11/municipalities-low.geojson",
+          "size": 32458,
+          "features": 72
+        },
+        "ultra-low": {
+          "path": "prefectures/11/municipalities-ultra-low.geojson",
+          "size": 21328,
+          "features": 72
+        }
+      }
+    },
+    "12": {
+      "name": "千葉県",
+      "municipalityCount": 59,
+      "files": {
+        "high": {
+          "path": "prefectures/12/municipalities-high.geojson",
+          "size": 83258,
+          "features": 59
+        },
+        "medium": {
+          "path": "prefectures/12/municipalities-medium.geojson",
+          "size": 50787,
+          "features": 59
+        },
+        "low": {
+          "path": "prefectures/12/municipalities-low.geojson",
+          "size": 30861,
+          "features": 59
+        },
+        "ultra-low": {
+          "path": "prefectures/12/municipalities-ultra-low.geojson",
+          "size": 18454,
+          "features": 59
+        }
+      }
+    },
+    "13": {
+      "name": "東京都",
+      "municipalityCount": 62,
+      "files": {
+        "high": {
+          "path": "prefectures/13/municipalities-high.geojson",
+          "size": 59020,
+          "features": 62
+        },
+        "medium": {
+          "path": "prefectures/13/municipalities-medium.geojson",
+          "size": 37381,
+          "features": 62
+        },
+        "low": {
+          "path": "prefectures/13/municipalities-low.geojson",
+          "size": 25360,
+          "features": 62
+        },
+        "ultra-low": {
+          "path": "prefectures/13/municipalities-ultra-low.geojson",
+          "size": 17587,
+          "features": 62
+        }
+      }
+    },
+    "14": {
+      "name": "神奈川県",
+      "municipalityCount": 58,
+      "files": {
+        "high": {
+          "path": "prefectures/14/municipalities-high.geojson",
+          "size": 56457,
+          "features": 58
+        },
+        "medium": {
+          "path": "prefectures/14/municipalities-medium.geojson",
+          "size": 36162,
+          "features": 58
+        },
+        "low": {
+          "path": "prefectures/14/municipalities-low.geojson",
+          "size": 24202,
+          "features": 58
+        },
+        "ultra-low": {
+          "path": "prefectures/14/municipalities-ultra-low.geojson",
+          "size": 16814,
+          "features": 58
+        }
+      }
+    },
+    "15": {
+      "name": "新潟県",
+      "municipalityCount": 37,
+      "files": {
+        "high": {
+          "path": "prefectures/15/municipalities-high.geojson",
+          "size": 91091,
+          "features": 37
+        },
+        "medium": {
+          "path": "prefectures/15/municipalities-medium.geojson",
+          "size": 53404,
+          "features": 37
+        },
+        "low": {
+          "path": "prefectures/15/municipalities-low.geojson",
+          "size": 29339,
+          "features": 37
+        },
+        "ultra-low": {
+          "path": "prefectures/15/municipalities-ultra-low.geojson",
+          "size": 14853,
+          "features": 37
+        }
+      }
+    },
+    "16": {
+      "name": "富山県",
+      "municipalityCount": 15,
+      "files": {
+        "high": {
+          "path": "prefectures/16/municipalities-high.geojson",
+          "size": 33067,
+          "features": 15
+        },
+        "medium": {
+          "path": "prefectures/16/municipalities-medium.geojson",
+          "size": 19227,
+          "features": 15
+        },
+        "low": {
+          "path": "prefectures/16/municipalities-low.geojson",
+          "size": 11392,
+          "features": 15
+        },
+        "ultra-low": {
+          "path": "prefectures/16/municipalities-ultra-low.geojson",
+          "size": 5674,
+          "features": 15
+        }
+      }
+    },
+    "17": {
+      "name": "石川県",
+      "municipalityCount": 19,
+      "files": {
+        "high": {
+          "path": "prefectures/17/municipalities-high.geojson",
+          "size": 40728,
+          "features": 19
+        },
+        "medium": {
+          "path": "prefectures/17/municipalities-medium.geojson",
+          "size": 23354,
+          "features": 19
+        },
+        "low": {
+          "path": "prefectures/17/municipalities-low.geojson",
+          "size": 13286,
+          "features": 19
+        },
+        "ultra-low": {
+          "path": "prefectures/17/municipalities-ultra-low.geojson",
+          "size": 7065,
+          "features": 19
+        }
+      }
+    },
+    "18": {
+      "name": "福井県",
+      "municipalityCount": 17,
+      "files": {
+        "high": {
+          "path": "prefectures/18/municipalities-high.geojson",
+          "size": 42661,
+          "features": 17
+        },
+        "medium": {
+          "path": "prefectures/18/municipalities-medium.geojson",
+          "size": 24347,
+          "features": 17
+        },
+        "low": {
+          "path": "prefectures/18/municipalities-low.geojson",
+          "size": 13726,
+          "features": 17
+        },
+        "ultra-low": {
+          "path": "prefectures/18/municipalities-ultra-low.geojson",
+          "size": 6634,
+          "features": 17
+        }
+      }
+    },
+    "19": {
+      "name": "山梨県",
+      "municipalityCount": 27,
+      "files": {
+        "high": {
+          "path": "prefectures/19/municipalities-high.geojson",
+          "size": 46840,
+          "features": 27
+        },
+        "medium": {
+          "path": "prefectures/19/municipalities-medium.geojson",
+          "size": 28573,
+          "features": 27
+        },
+        "low": {
+          "path": "prefectures/19/municipalities-low.geojson",
+          "size": 17130,
+          "features": 27
+        },
+        "ultra-low": {
+          "path": "prefectures/19/municipalities-ultra-low.geojson",
+          "size": 9559,
+          "features": 27
+        }
+      }
+    },
+    "20": {
+      "name": "長野県",
+      "municipalityCount": 77,
+      "files": {
+        "high": {
+          "path": "prefectures/20/municipalities-high.geojson",
+          "size": 138469,
+          "features": 77
+        },
+        "medium": {
+          "path": "prefectures/20/municipalities-medium.geojson",
+          "size": 82981,
+          "features": 77
+        },
+        "low": {
+          "path": "prefectures/20/municipalities-low.geojson",
+          "size": 49236,
+          "features": 77
+        },
+        "ultra-low": {
+          "path": "prefectures/20/municipalities-ultra-low.geojson",
+          "size": 27179,
+          "features": 77
+        }
+      }
+    },
+    "21": {
+      "name": "岐阜県",
+      "municipalityCount": 42,
+      "files": {
+        "high": {
+          "path": "prefectures/21/municipalities-high.geojson",
+          "size": 87738,
+          "features": 42
+        },
+        "medium": {
+          "path": "prefectures/21/municipalities-medium.geojson",
+          "size": 50865,
+          "features": 42
+        },
+        "low": {
+          "path": "prefectures/21/municipalities-low.geojson",
+          "size": 30396,
+          "features": 42
+        },
+        "ultra-low": {
+          "path": "prefectures/21/municipalities-ultra-low.geojson",
+          "size": 15916,
+          "features": 42
+        }
+      }
+    },
+    "22": {
+      "name": "静岡県",
+      "municipalityCount": 43,
+      "files": {
+        "high": {
+          "path": "prefectures/22/municipalities-high.geojson",
+          "size": 77226,
+          "features": 43
+        },
+        "medium": {
+          "path": "prefectures/22/municipalities-medium.geojson",
+          "size": 45211,
+          "features": 43
+        },
+        "low": {
+          "path": "prefectures/22/municipalities-low.geojson",
+          "size": 27115,
+          "features": 43
+        },
+        "ultra-low": {
+          "path": "prefectures/22/municipalities-ultra-low.geojson",
+          "size": 14753,
+          "features": 43
+        }
+      }
+    },
+    "23": {
+      "name": "愛知県",
+      "municipalityCount": 69,
+      "files": {
+        "high": {
+          "path": "prefectures/23/municipalities-high.geojson",
+          "size": 79937,
+          "features": 69
+        },
+        "medium": {
+          "path": "prefectures/23/municipalities-medium.geojson",
+          "size": 49809,
+          "features": 69
+        },
+        "low": {
+          "path": "prefectures/23/municipalities-low.geojson",
+          "size": 31725,
+          "features": 69
+        },
+        "ultra-low": {
+          "path": "prefectures/23/municipalities-ultra-low.geojson",
+          "size": 20530,
+          "features": 69
+        }
+      }
+    },
+    "24": {
+      "name": "三重県",
+      "municipalityCount": 29,
+      "files": {
+        "high": {
+          "path": "prefectures/24/municipalities-high.geojson",
+          "size": 65052,
+          "features": 29
+        },
+        "medium": {
+          "path": "prefectures/24/municipalities-medium.geojson",
+          "size": 36593,
+          "features": 29
+        },
+        "low": {
+          "path": "prefectures/24/municipalities-low.geojson",
+          "size": 20612,
+          "features": 29
+        },
+        "ultra-low": {
+          "path": "prefectures/24/municipalities-ultra-low.geojson",
+          "size": 10275,
+          "features": 29
+        }
+      }
+    },
+    "25": {
+      "name": "滋賀県",
+      "municipalityCount": 19,
+      "files": {
+        "high": {
+          "path": "prefectures/25/municipalities-high.geojson",
+          "size": 35332,
+          "features": 19
+        },
+        "medium": {
+          "path": "prefectures/25/municipalities-medium.geojson",
+          "size": 21142,
+          "features": 19
+        },
+        "low": {
+          "path": "prefectures/25/municipalities-low.geojson",
+          "size": 12771,
+          "features": 19
+        },
+        "ultra-low": {
+          "path": "prefectures/25/municipalities-ultra-low.geojson",
+          "size": 6864,
+          "features": 19
+        }
+      }
+    },
+    "26": {
+      "name": "京都府",
+      "municipalityCount": 36,
+      "files": {
+        "high": {
+          "path": "prefectures/26/municipalities-high.geojson",
+          "size": 56914,
+          "features": 36
+        },
+        "medium": {
+          "path": "prefectures/26/municipalities-medium.geojson",
+          "size": 33986,
+          "features": 36
+        },
+        "low": {
+          "path": "prefectures/26/municipalities-low.geojson",
+          "size": 20507,
+          "features": 36
+        },
+        "ultra-low": {
+          "path": "prefectures/26/municipalities-ultra-low.geojson",
+          "size": 11864,
+          "features": 36
+        }
+      }
+    },
+    "27": {
+      "name": "大阪府",
+      "municipalityCount": 72,
+      "files": {
+        "high": {
+          "path": "prefectures/27/municipalities-high.geojson",
+          "size": 57011,
+          "features": 72
+        },
+        "medium": {
+          "path": "prefectures/27/municipalities-medium.geojson",
+          "size": 39147,
+          "features": 72
+        },
+        "low": {
+          "path": "prefectures/27/municipalities-low.geojson",
+          "size": 27374,
+          "features": 72
+        },
+        "ultra-low": {
+          "path": "prefectures/27/municipalities-ultra-low.geojson",
+          "size": 20426,
+          "features": 72
+        }
+      }
+    },
+    "28": {
+      "name": "兵庫県",
+      "municipalityCount": 49,
+      "files": {
+        "high": {
+          "path": "prefectures/28/municipalities-high.geojson",
+          "size": 92786,
+          "features": 49
+        },
+        "medium": {
+          "path": "prefectures/28/municipalities-medium.geojson",
+          "size": 52752,
+          "features": 49
+        },
+        "low": {
+          "path": "prefectures/28/municipalities-low.geojson",
+          "size": 31720,
+          "features": 49
+        },
+        "ultra-low": {
+          "path": "prefectures/28/municipalities-ultra-low.geojson",
+          "size": 17155,
+          "features": 49
+        }
+      }
+    },
+    "29": {
+      "name": "奈良県",
+      "municipalityCount": 39,
+      "files": {
+        "high": {
+          "path": "prefectures/29/municipalities-high.geojson",
+          "size": 51865,
+          "features": 39
+        },
+        "medium": {
+          "path": "prefectures/29/municipalities-medium.geojson",
+          "size": 31394,
+          "features": 39
+        },
+        "low": {
+          "path": "prefectures/29/municipalities-low.geojson",
+          "size": 19994,
+          "features": 39
+        },
+        "ultra-low": {
+          "path": "prefectures/29/municipalities-ultra-low.geojson",
+          "size": 12480,
+          "features": 39
+        }
+      }
+    },
+    "30": {
+      "name": "和歌山県",
+      "municipalityCount": 30,
+      "files": {
+        "high": {
+          "path": "prefectures/30/municipalities-high.geojson",
+          "size": 59202,
+          "features": 30
+        },
+        "medium": {
+          "path": "prefectures/30/municipalities-medium.geojson",
+          "size": 33461,
+          "features": 30
+        },
+        "low": {
+          "path": "prefectures/30/municipalities-low.geojson",
+          "size": 19547,
+          "features": 30
+        },
+        "ultra-low": {
+          "path": "prefectures/30/municipalities-ultra-low.geojson",
+          "size": 10489,
+          "features": 30
+        }
+      }
+    },
+    "31": {
+      "name": "鳥取県",
+      "municipalityCount": 19,
+      "files": {
+        "high": {
+          "path": "prefectures/31/municipalities-high.geojson",
+          "size": 33753,
+          "features": 19
+        },
+        "medium": {
+          "path": "prefectures/31/municipalities-medium.geojson",
+          "size": 20188,
+          "features": 19
+        },
+        "low": {
+          "path": "prefectures/31/municipalities-low.geojson",
+          "size": 12224,
+          "features": 19
+        },
+        "ultra-low": {
+          "path": "prefectures/31/municipalities-ultra-low.geojson",
+          "size": 6971,
+          "features": 19
+        }
+      }
+    },
+    "32": {
+      "name": "島根県",
+      "municipalityCount": 19,
+      "files": {
+        "high": {
+          "path": "prefectures/32/municipalities-high.geojson",
+          "size": 52333,
+          "features": 19
+        },
+        "medium": {
+          "path": "prefectures/32/municipalities-medium.geojson",
+          "size": 28903,
+          "features": 19
+        },
+        "low": {
+          "path": "prefectures/32/municipalities-low.geojson",
+          "size": 15454,
+          "features": 19
+        },
+        "ultra-low": {
+          "path": "prefectures/32/municipalities-ultra-low.geojson",
+          "size": 7378,
+          "features": 19
+        }
+      }
+    },
+    "33": {
+      "name": "岡山県",
+      "municipalityCount": 30,
+      "files": {
+        "high": {
+          "path": "prefectures/33/municipalities-high.geojson",
+          "size": 73130,
+          "features": 30
+        },
+        "medium": {
+          "path": "prefectures/33/municipalities-medium.geojson",
+          "size": 40352,
+          "features": 30
+        },
+        "low": {
+          "path": "prefectures/33/municipalities-low.geojson",
+          "size": 22276,
+          "features": 30
+        },
+        "ultra-low": {
+          "path": "prefectures/33/municipalities-ultra-low.geojson",
+          "size": 11327,
+          "features": 30
+        }
+      }
+    },
+    "34": {
+      "name": "広島県",
+      "municipalityCount": 30,
+      "files": {
+        "high": {
+          "path": "prefectures/34/municipalities-high.geojson",
+          "size": 82503,
+          "features": 30
+        },
+        "medium": {
+          "path": "prefectures/34/municipalities-medium.geojson",
+          "size": 45705,
+          "features": 30
+        },
+        "low": {
+          "path": "prefectures/34/municipalities-low.geojson",
+          "size": 25152,
+          "features": 30
+        },
+        "ultra-low": {
+          "path": "prefectures/34/municipalities-ultra-low.geojson",
+          "size": 12196,
+          "features": 30
+        }
+      }
+    },
+    "35": {
+      "name": "山口県",
+      "municipalityCount": 19,
+      "files": {
+        "high": {
+          "path": "prefectures/35/municipalities-high.geojson",
+          "size": 62969,
+          "features": 19
+        },
+        "medium": {
+          "path": "prefectures/35/municipalities-medium.geojson",
+          "size": 33898,
+          "features": 19
+        },
+        "low": {
+          "path": "prefectures/35/municipalities-low.geojson",
+          "size": 17705,
+          "features": 19
+        },
+        "ultra-low": {
+          "path": "prefectures/35/municipalities-ultra-low.geojson",
+          "size": 7649,
+          "features": 19
+        }
+      }
+    },
+    "36": {
+      "name": "徳島県",
+      "municipalityCount": 24,
+      "files": {
+        "high": {
+          "path": "prefectures/36/municipalities-high.geojson",
+          "size": 42319,
+          "features": 24
+        },
+        "medium": {
+          "path": "prefectures/36/municipalities-medium.geojson",
+          "size": 25821,
+          "features": 24
+        },
+        "low": {
+          "path": "prefectures/36/municipalities-low.geojson",
+          "size": 15462,
+          "features": 24
+        },
+        "ultra-low": {
+          "path": "prefectures/36/municipalities-ultra-low.geojson",
+          "size": 8283,
+          "features": 24
+        }
+      }
+    },
+    "37": {
+      "name": "香川県",
+      "municipalityCount": 17,
+      "files": {
+        "high": {
+          "path": "prefectures/37/municipalities-high.geojson",
+          "size": 30858,
+          "features": 17
+        },
+        "medium": {
+          "path": "prefectures/37/municipalities-medium.geojson",
+          "size": 17473,
+          "features": 17
+        },
+        "low": {
+          "path": "prefectures/37/municipalities-low.geojson",
+          "size": 9669,
+          "features": 17
+        },
+        "ultra-low": {
+          "path": "prefectures/37/municipalities-ultra-low.geojson",
+          "size": 5349,
+          "features": 17
+        }
+      }
+    },
+    "38": {
+      "name": "愛媛県",
+      "municipalityCount": 20,
+      "files": {
+        "high": {
+          "path": "prefectures/38/municipalities-high.geojson",
+          "size": 64732,
+          "features": 20
+        },
+        "medium": {
+          "path": "prefectures/38/municipalities-medium.geojson",
+          "size": 33764,
+          "features": 20
+        },
+        "low": {
+          "path": "prefectures/38/municipalities-low.geojson",
+          "size": 18169,
+          "features": 20
+        },
+        "ultra-low": {
+          "path": "prefectures/38/municipalities-ultra-low.geojson",
+          "size": 8521,
+          "features": 20
+        }
+      }
+    },
+    "39": {
+      "name": "高知県",
+      "municipalityCount": 34,
+      "files": {
+        "high": {
+          "path": "prefectures/39/municipalities-high.geojson",
+          "size": 72596,
+          "features": 34
+        },
+        "medium": {
+          "path": "prefectures/39/municipalities-medium.geojson",
+          "size": 41493,
+          "features": 34
+        },
+        "low": {
+          "path": "prefectures/39/municipalities-low.geojson",
+          "size": 24821,
+          "features": 34
+        },
+        "ultra-low": {
+          "path": "prefectures/39/municipalities-ultra-low.geojson",
+          "size": 12446,
+          "features": 34
+        }
+      }
+    },
+    "40": {
+      "name": "福岡県",
+      "municipalityCount": 72,
+      "files": {
+        "high": {
+          "path": "prefectures/40/municipalities-high.geojson",
+          "size": 89563,
+          "features": 72
+        },
+        "medium": {
+          "path": "prefectures/40/municipalities-medium.geojson",
+          "size": 54407,
+          "features": 72
+        },
+        "low": {
+          "path": "prefectures/40/municipalities-low.geojson",
+          "size": 35009,
+          "features": 72
+        },
+        "ultra-low": {
+          "path": "prefectures/40/municipalities-ultra-low.geojson",
+          "size": 21648,
+          "features": 72
+        }
+      }
+    },
+    "41": {
+      "name": "佐賀県",
+      "municipalityCount": 20,
+      "files": {
+        "high": {
+          "path": "prefectures/41/municipalities-high.geojson",
+          "size": 32595,
+          "features": 20
+        },
+        "medium": {
+          "path": "prefectures/41/municipalities-medium.geojson",
+          "size": 19524,
+          "features": 20
+        },
+        "low": {
+          "path": "prefectures/41/municipalities-low.geojson",
+          "size": 10989,
+          "features": 20
+        },
+        "ultra-low": {
+          "path": "prefectures/41/municipalities-ultra-low.geojson",
+          "size": 6484,
+          "features": 20
+        }
+      }
+    },
+    "42": {
+      "name": "長崎県",
+      "municipalityCount": 21,
+      "files": {
+        "high": {
+          "path": "prefectures/42/municipalities-high.geojson",
+          "size": 75381,
+          "features": 21
+        },
+        "medium": {
+          "path": "prefectures/42/municipalities-medium.geojson",
+          "size": 37413,
+          "features": 21
+        },
+        "low": {
+          "path": "prefectures/42/municipalities-low.geojson",
+          "size": 18147,
+          "features": 21
+        },
+        "ultra-low": {
+          "path": "prefectures/42/municipalities-ultra-low.geojson",
+          "size": 8304,
+          "features": 21
+        }
+      }
+    },
+    "43": {
+      "name": "熊本県",
+      "municipalityCount": 49,
+      "files": {
+        "high": {
+          "path": "prefectures/43/municipalities-high.geojson",
+          "size": 87458,
+          "features": 49
+        },
+        "medium": {
+          "path": "prefectures/43/municipalities-medium.geojson",
+          "size": 51200,
+          "features": 49
+        },
+        "low": {
+          "path": "prefectures/43/municipalities-low.geojson",
+          "size": 31010,
+          "features": 49
+        },
+        "ultra-low": {
+          "path": "prefectures/43/municipalities-ultra-low.geojson",
+          "size": 16362,
+          "features": 49
+        }
+      }
+    },
+    "44": {
+      "name": "大分県",
+      "municipalityCount": 18,
+      "files": {
+        "high": {
+          "path": "prefectures/44/municipalities-high.geojson",
+          "size": 53067,
+          "features": 18
+        },
+        "medium": {
+          "path": "prefectures/44/municipalities-medium.geojson",
+          "size": 29500,
+          "features": 18
+        },
+        "low": {
+          "path": "prefectures/44/municipalities-low.geojson",
+          "size": 15941,
+          "features": 18
+        },
+        "ultra-low": {
+          "path": "prefectures/44/municipalities-ultra-low.geojson",
+          "size": 7854,
+          "features": 18
+        }
+      }
+    },
+    "45": {
+      "name": "宮崎県",
+      "municipalityCount": 26,
+      "files": {
+        "high": {
+          "path": "prefectures/45/municipalities-high.geojson",
+          "size": 63341,
+          "features": 26
+        },
+        "medium": {
+          "path": "prefectures/45/municipalities-medium.geojson",
+          "size": 35522,
+          "features": 26
+        },
+        "low": {
+          "path": "prefectures/45/municipalities-low.geojson",
+          "size": 20695,
+          "features": 26
+        },
+        "ultra-low": {
+          "path": "prefectures/45/municipalities-ultra-low.geojson",
+          "size": 10251,
+          "features": 26
+        }
+      }
+    },
+    "46": {
+      "name": "鹿児島県",
+      "municipalityCount": 43,
+      "files": {
+        "high": {
+          "path": "prefectures/46/municipalities-high.geojson",
+          "size": 106632,
+          "features": 43
+        },
+        "medium": {
+          "path": "prefectures/46/municipalities-medium.geojson",
+          "size": 60162,
+          "features": 43
+        },
+        "low": {
+          "path": "prefectures/46/municipalities-low.geojson",
+          "size": 33452,
+          "features": 43
+        },
+        "ultra-low": {
+          "path": "prefectures/46/municipalities-ultra-low.geojson",
+          "size": 16701,
+          "features": 43
+        }
+      }
+    },
+    "47": {
+      "name": "沖縄県",
+      "municipalityCount": 41,
+      "files": {
+        "high": {
+          "path": "prefectures/47/municipalities-high.geojson",
+          "size": 52327,
+          "features": 41
+        },
+        "medium": {
+          "path": "prefectures/47/municipalities-medium.geojson",
+          "size": 31382,
+          "features": 41
+        },
+        "low": {
+          "path": "prefectures/47/municipalities-low.geojson",
+          "size": 19084,
+          "features": 41
+        },
+        "ultra-low": {
+          "path": "prefectures/47/municipalities-ultra-low.geojson",
+          "size": 11895,
+          "features": 41
+        }
+      }
+    },
+    "01": {
+      "name": "北海道",
+      "municipalityCount": 194,
+      "files": {
+        "high": {
+          "path": "prefectures/01/municipalities-high.geojson",
+          "size": 514873,
+          "features": 194
+        },
+        "medium": {
+          "path": "prefectures/01/municipalities-medium.geojson",
+          "size": 302753,
+          "features": 194
+        },
+        "low": {
+          "path": "prefectures/01/municipalities-low.geojson",
+          "size": 173888,
+          "features": 194
+        },
+        "ultra-low": {
+          "path": "prefectures/01/municipalities-ultra-low.geojson",
+          "size": 88685,
+          "features": 194
+        }
+      }
+    },
+    "02": {
+      "name": "青森県",
+      "municipalityCount": 40,
+      "files": {
+        "high": {
+          "path": "prefectures/02/municipalities-high.geojson",
+          "size": 87795,
+          "features": 40
+        },
+        "medium": {
+          "path": "prefectures/02/municipalities-medium.geojson",
+          "size": 51065,
+          "features": 40
+        },
+        "low": {
+          "path": "prefectures/02/municipalities-low.geojson",
+          "size": 29799,
+          "features": 40
+        },
+        "ultra-low": {
+          "path": "prefectures/02/municipalities-ultra-low.geojson",
+          "size": 15494,
+          "features": 40
+        }
+      }
+    },
+    "03": {
+      "name": "岩手県",
+      "municipalityCount": 33,
+      "files": {
+        "high": {
+          "path": "prefectures/03/municipalities-high.geojson",
+          "size": 100383,
+          "features": 33
+        },
+        "medium": {
+          "path": "prefectures/03/municipalities-medium.geojson",
+          "size": 56852,
+          "features": 33
+        },
+        "low": {
+          "path": "prefectures/03/municipalities-low.geojson",
+          "size": 31596,
+          "features": 33
+        },
+        "ultra-low": {
+          "path": "prefectures/03/municipalities-ultra-low.geojson",
+          "size": 14790,
+          "features": 33
+        }
+      }
+    },
+    "04": {
+      "name": "宮城県",
+      "municipalityCount": 39,
+      "files": {
+        "high": {
+          "path": "prefectures/04/municipalities-high.geojson",
+          "size": 79473,
+          "features": 39
+        },
+        "medium": {
+          "path": "prefectures/04/municipalities-medium.geojson",
+          "size": 46706,
+          "features": 39
+        },
+        "low": {
+          "path": "prefectures/04/municipalities-low.geojson",
+          "size": 27164,
+          "features": 39
+        },
+        "ultra-low": {
+          "path": "prefectures/04/municipalities-ultra-low.geojson",
+          "size": 14135,
+          "features": 39
+        }
+      }
+    },
+    "05": {
+      "name": "秋田県",
+      "municipalityCount": 25,
+      "files": {
+        "high": {
+          "path": "prefectures/05/municipalities-high.geojson",
+          "size": 71994,
+          "features": 25
+        },
+        "medium": {
+          "path": "prefectures/05/municipalities-medium.geojson",
+          "size": 42416,
+          "features": 25
+        },
+        "low": {
+          "path": "prefectures/05/municipalities-low.geojson",
+          "size": 23189,
+          "features": 25
+        },
+        "ultra-low": {
+          "path": "prefectures/05/municipalities-ultra-low.geojson",
+          "size": 11075,
+          "features": 25
+        }
+      }
+    },
+    "06": {
+      "name": "山形県",
+      "municipalityCount": 35,
+      "files": {
+        "high": {
+          "path": "prefectures/06/municipalities-high.geojson",
+          "size": 79581,
+          "features": 35
+        },
+        "medium": {
+          "path": "prefectures/06/municipalities-medium.geojson",
+          "size": 46061,
+          "features": 35
+        },
+        "low": {
+          "path": "prefectures/06/municipalities-low.geojson",
+          "size": 26665,
+          "features": 35
+        },
+        "ultra-low": {
+          "path": "prefectures/06/municipalities-ultra-low.geojson",
+          "size": 13787,
+          "features": 35
+        }
+      }
+    },
+    "07": {
+      "name": "福島県",
+      "municipalityCount": 59,
+      "files": {
+        "high": {
+          "path": "prefectures/07/municipalities-high.geojson",
+          "size": 125181,
+          "features": 59
+        },
+        "medium": {
+          "path": "prefectures/07/municipalities-medium.geojson",
+          "size": 71617,
+          "features": 59
+        },
+        "low": {
+          "path": "prefectures/07/municipalities-low.geojson",
+          "size": 41278,
+          "features": 59
+        },
+        "ultra-low": {
+          "path": "prefectures/07/municipalities-ultra-low.geojson",
+          "size": 21957,
+          "features": 59
+        }
+      }
+    },
+    "08": {
+      "name": "茨城県",
+      "municipalityCount": 44,
+      "files": {
+        "high": {
+          "path": "prefectures/08/municipalities-high.geojson",
+          "size": 70480,
+          "features": 44
+        },
+        "medium": {
+          "path": "prefectures/08/municipalities-medium.geojson",
+          "size": 41787,
+          "features": 44
+        },
+        "low": {
+          "path": "prefectures/08/municipalities-low.geojson",
+          "size": 26283,
+          "features": 44
+        },
+        "ultra-low": {
+          "path": "prefectures/08/municipalities-ultra-low.geojson",
+          "size": 14600,
+          "features": 44
+        }
+      }
+    },
+    "09": {
+      "name": "栃木県",
+      "municipalityCount": 25,
+      "files": {
+        "high": {
+          "path": "prefectures/09/municipalities-high.geojson",
+          "size": 55380,
+          "features": 25
+        },
+        "medium": {
+          "path": "prefectures/09/municipalities-medium.geojson",
+          "size": 31661,
+          "features": 25
+        },
+        "low": {
+          "path": "prefectures/09/municipalities-low.geojson",
+          "size": 18520,
+          "features": 25
+        },
+        "ultra-low": {
+          "path": "prefectures/09/municipalities-ultra-low.geojson",
+          "size": 9542,
+          "features": 25
+        }
+      }
+    },
+    "undefined": {
+      "name": "都道府県undefined",
+      "municipalityCount": 4,
+      "files": {
+        "high": {
+          "path": "prefectures/undefined/municipalities-high.geojson",
+          "size": 1588,
+          "features": 4
+        },
+        "medium": {
+          "path": "prefectures/undefined/municipalities-medium.geojson",
+          "size": 1437,
+          "features": 4
+        },
+        "low": {
+          "path": "prefectures/undefined/municipalities-low.geojson",
+          "size": 1272,
+          "features": 4
+        },
+        "ultra-low": {
+          "path": "prefectures/undefined/municipalities-ultra-low.geojson",
+          "size": 882,
+          "features": 4
+        }
+      }
+    }
+  },
+  "generated": "2025-06-19T09:11:25.169Z",
+  "totalSize": {
+    "original": 7736329,
+    "compressed": 0
+  }
+}

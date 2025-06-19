@@ -1,6 +1,6 @@
 {
   "name": "japan-map-selector",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Interactive Japan map component for selecting prefectures and municipalities",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
@@ -10,6 +10,7 @@
     "build": "rollup -c && tsc --emitDeclarationOnly",
     "dev": "rollup -c -w",
     "generate-paths": "node generate-paths.js",
+    "split-data": "node scripts/split-data.js",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -18,6 +19,8 @@
     "dist",
     "src/data/simplified/prefectures-medium.geojson",
     "src/data/simplified/municipalities-medium.geojson",
+    "src/data/prefecture-index.json",
+    "src/data/prefectures",
     "README.md",
     "LICENSE",
     "ATTRIBUTION.md"

@@ -6,6 +6,7 @@ import {
   Municipality 
 } from '../types';
 import { PREFECTURE_CODES } from './prefecture-codes';
+import { DynamicDataLoader } from './dynamic-data-loader';
 
 // 都道府県データの読み込み
 export async function loadPrefectureData(url: string): Promise<Prefecture[]> {
@@ -103,4 +104,51 @@ export function filterMunicipalitiesByPrefecture(
   prefectureCode: string
 ): Municipality[] {
   return municipalities.filter(m => m.prefectureCode === prefectureCode);
+}
+
+// 動的データローダーのインスタンス
+let dynamicLoader: DynamicDataLoader | null = null;
+
+// 動的データローダーを初期化
+export function initializeDynamicLoader(baseUrl?: string): DynamicDataLoader {
+  dynamicLoader = new DynamicDataLoader(baseUrl);
+  return dynamicLoader;
+}
+
+// 都道府県別の市区町村データを動的に読み込む
+export async function loadMunicipalitiesForPrefecture(prefectureCode: string): Promise<Municipality[]> {
+  if (!dynamicLoader) {
+    throw new Error('Dynamic loader not initialized. Call initializeDynamicLoader first.');
+  }
+  
+  const features = await dynamicLoader.loadMunicipalitiesForPrefecture(prefectureCode);
+  
+  return features.map(feature => {
+    const municipalityName = feature.properties.N03_004 || 
+                            feature.properties.N03_003 || 
+                            feature.properties.N03_002 || '';
+    
+    const code = feature.properties.N03_007 || `${prefectureCode}999`;
+    
+    return {
+      code,
+      name: municipalityName,
+      prefectureCode,
+      feature
+    };
+  });
+}
+
+// 動的ローダーの精度を設定
+export function setDynamicLoaderPrecision(precision: string): void {
+  if (dynamicLoader) {
+    dynamicLoader.setPrecision(precision);
+  }
+}
+
+// 動的ローダーのキャッシュをクリア
+export function clearDynamicLoaderCache(prefectureCode?: string): void {
+  if (dynamicLoader) {
+    dynamicLoader.clearCache(prefectureCode);
+  }
 }

@@ -73,6 +73,16 @@ export interface JapanMapSelectorProps {
   disabledPrefectureStroke?: string;
   // ポリゴンの簡略化レベル
   simplificationLevel?: 'original' | 'high' | 'medium' | 'low' | 'ultra-low';
+  // パフォーマンスオプション
+  lazyLoadMunicipalities?: boolean; // 市区町村データを遅延読み込みするか（デフォルト: false）
+  preloadMunicipalitiesDelay?: number; // 初回ロード後、何ミリ秒後に市区町村データを事前読み込みするか（デフォルト: 3000）
+  // 都道府県別データの動的読み込みを有効化
+  enableDynamicLoading?: boolean;
+  // 動的データのベースURL
+  dynamicDataBaseUrl?: string;
+  // データ読み込みコールバック
+  onMunicipalityLoadStart?: (prefecture?: Prefecture) => void; // 市区町村データ読み込み開始時
+  onMunicipalityLoadEnd?: (prefecture?: Prefecture) => void; // 市区町村データ読み込み終了時
   // 出典表示の設定
   showAttribution?: boolean;
   attributionOptions?: {

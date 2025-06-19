@@ -171,10 +171,16 @@ await map.initialize(prefectureData, municipalityData);
 ### CDNから直接読み込む場合
 
 ```javascript
-// unpkgから読み込む
+// unpkgから読み込む（キャッシュが効くため2回目以降は高速）
 await map.initialize(
   'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-medium.geojson',
   'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-medium.geojson'
+);
+
+// より高速な初回ロードが必要な場合は低精度データを使用
+await map.initialize(
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-low.geojson',
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-low.geojson'
 );
 ```
 

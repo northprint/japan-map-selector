@@ -288,8 +288,8 @@
         <select id="simplification-select">
           <option value="original">オリジナル (100%)</option>
           <option value="high">高精度 (18%)</option>
-          <option value="medium" selected>中精度 (9%)</option>
-          <option value="low">低精度 (8%)</option>
+          <option value="medium">中精度 (9%)</option>
+          <option value="low" selected>低精度 (8%)</option>
           <option value="ultra-low">超低精度 (4%)</option>
         </select>
       </div>
@@ -324,6 +324,9 @@
       <div id="map-loading" class="loading">
         <div class="loading-spinner"></div>
         <p>地図データを読み込んでいます...</p>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">
+          <span id="loading-status">都道府県データを読み込み中...</span>
+        </p>
       </div>
       
       <svg id="map-svg" viewBox="0 0 800 600" style="display: none;"></svg>
@@ -437,10 +440,44 @@
       let selector = null;
       let currentTheme = 'default';
       let currentSelectablePrefectures = undefined;
-      let currentSimplificationLevel = 'medium';
+      let currentSimplificationLevel = 'low'; // デフォルトを低精度に変更
       
       // データのベースURL（CDNまたはローカル）
       const dataBaseUrl = 'https://unpkg.com/japan-map-selector@latest/src/data';
+      
+      // キャッシュを活用したfetch関数
+      async function fetchWithCache(url) {
+        const cacheKey = `japan-map-${url}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        
+        if (cached) {
+          debug(`キャッシュからデータを取得: ${url}`);
+          return JSON.parse(cached);
+        }
+        
+        const response = await fetch(url, {
+          headers: {
+            'Accept': 'application/json, application/geo+json',
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // セッションストレージにキャッシュ（同じセッション内で再利用）
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(data));
+          debug(`データをキャッシュに保存: ${url}`);
+        } catch (e) {
+          // ストレージが満杯の場合は無視
+          console.warn('キャッシュの保存に失敗:', e);
+        }
+        
+        return data;
+      }
       
       // セレクターの初期化関数
       async function initializeSelector() {
@@ -502,7 +539,17 @@
           
           debug(`データファイル: ${prefectureFile}, ${municipalityFile}`);
           
+          // ローディング状態を更新
+          const loadingStatus = document.getElementById('loading-status');
+          loadingStatus.textContent = '都道府県データを読み込み中...';
+          
+          // 段階的な読み込みを表現
+          const startTime = performance.now();
+          
           await selector.initialize(prefectureFile, municipalityFile);
+          
+          const loadTime = performance.now() - startTime;
+          debug(`データ読み込み完了: ${loadTime.toFixed(0)}ms`);
           
           const prefectures = selector.getPrefectures();
           debug(`データ読み込み完了: ${prefectures.length}個の都道府県`);
@@ -522,6 +569,11 @@
           
           selectionInfo.innerHTML = '<p>都道府県をクリックして選択してください。</p>';
           render(selector.getState());
+          
+          // パフォーマンス情報を表示（デバッグモード時）
+          if (debugMode) {
+            console.log(`地図データの読み込み時間: ${loadTime.toFixed(0)}ms`);
+          }
         } catch (error) {
           debug(`エラー: ${error.message}`);
           console.error('データの読み込みエラー:', error);

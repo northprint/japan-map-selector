@@ -10,7 +10,11 @@ import {
 import {
   loadPrefectureData,
   loadMunicipalityData,
-  filterMunicipalitiesByPrefecture
+  filterMunicipalitiesByPrefecture,
+  initializeDynamicLoader,
+  loadMunicipalitiesForPrefecture,
+  setDynamicLoaderPrecision,
+  clearDynamicLoaderCache
 } from './data-loader';
 import {
   geometryToPath,
@@ -25,6 +29,7 @@ import { GridDeformer, HexagonalGridDeformer } from './grid-deformer';
 export class JapanMapSelector {
   private prefectures: Prefecture[] = [];
   private municipalities: Municipality[] = [];
+  private municipalitiesCache: Map<string, Municipality[]> = new Map();
   private state: MapState;
   private listeners: Map<string, Function[]> = new Map();
   private props: JapanMapSelectorProps;
@@ -33,6 +38,7 @@ export class JapanMapSelector {
   private currentThemeName: string = 'default';
   private deformer: GridDeformer | null = null;
   private deformMode: 'none' | 'grid' | 'hexagon' = 'none';
+  private isDynamicLoadingEnabled: boolean = false;
 
   constructor(props: JapanMapSelectorProps = {}) {
     this.props = {
@@ -65,8 +71,24 @@ export class JapanMapSelector {
 
   // データの初期化
   async initialize(prefectureDataUrl: string, municipalityDataUrl: string) {
-    this.prefectures = await loadPrefectureData(prefectureDataUrl);
-    this.municipalities = await loadMunicipalityData(municipalityDataUrl);
+    // 動的読み込みが有効な場合
+    if (this.props.enableDynamicLoading) {
+      this.isDynamicLoadingEnabled = true;
+      // 動的ローダーを初期化
+      const loader = initializeDynamicLoader(this.props.dynamicDataBaseUrl);
+      // 精度レベルを設定
+      if (this.props.simplificationLevel) {
+        setDynamicLoaderPrecision(this.props.simplificationLevel);
+      }
+      // 都道府県データのみ読み込む
+      this.prefectures = await loadPrefectureData(prefectureDataUrl);
+      // 市区町村データは空の配列に
+      this.municipalities = [];
+    } else {
+      // 従来の一括読み込み
+      this.prefectures = await loadPrefectureData(prefectureDataUrl);
+      this.municipalities = await loadMunicipalityData(municipalityDataUrl);
+    }
     
     // 全都道府県の境界から最適な投影を計算
     this.currentProjection = this.calculateOptimalProjection();
@@ -166,7 +188,7 @@ export class JapanMapSelector {
   }
   
   // 都道府県の選択
-  selectPrefecture(prefectureCode: string) {
+  async selectPrefecture(prefectureCode: string) {
     // 選択可能かチェック
     if (!this.isPrefectureSelectable(prefectureCode)) {
       return;
@@ -176,6 +198,38 @@ export class JapanMapSelector {
     if (prefecture) {
       this.state.selectedPrefecture = prefecture;
       this.state.showTokyoIslands = false; // 離島表示をリセット
+      
+      // 動的読み込みが有効な場合
+      if (this.isDynamicLoadingEnabled) {
+        // キャッシュをチェック
+        if (!this.municipalitiesCache.has(prefectureCode)) {
+          // 読み込み開始を通知
+          if (this.props.onMunicipalityLoadStart) {
+            this.props.onMunicipalityLoadStart(prefecture);
+          }
+          
+          try {
+            // 市区町村データを動的に読み込む
+            const municipalitiesForPrefecture = await loadMunicipalitiesForPrefecture(prefectureCode);
+            this.municipalitiesCache.set(prefectureCode, municipalitiesForPrefecture);
+            
+            // 読み込み終了を通知
+            if (this.props.onMunicipalityLoadEnd) {
+              this.props.onMunicipalityLoadEnd(prefecture);
+            }
+          } catch (error) {
+            console.error(`Failed to load municipalities for prefecture ${prefectureCode}:`, error);
+            // 読み込みエラー時も終了を通知
+            if (this.props.onMunicipalityLoadEnd) {
+              this.props.onMunicipalityLoadEnd(prefecture);
+            }
+            return;
+          }
+        }
+        
+        // キャッシュから市区町村データを設定
+        this.municipalities = this.municipalitiesCache.get(prefectureCode) || [];
+      }
       
       // 東京都・北海道の場合は本土の境界を使用
       let bounds = prefecture.bounds;
@@ -214,7 +268,9 @@ export class JapanMapSelector {
         });
         
         // 計算された実際の境界を使用
-        bounds = [[actualMinLng, actualMinLat], [actualMaxLng, actualMaxLat]];
+        if (actualMinLng !== Infinity) {
+          bounds = [[actualMinLng, actualMinLat], [actualMaxLng, actualMaxLat]];
+        }
       }
       
       // ビューボックスを都道府県に合わせて調整
@@ -252,6 +308,11 @@ export class JapanMapSelector {
   getSelectedMunicipalities(): Municipality[] {
     if (!this.state.selectedPrefecture) {
       return [];
+    }
+    
+    // 動的読み込みが有効な場合は、現在の municipalities 配列を使用
+    if (this.isDynamicLoadingEnabled) {
+      return this.municipalities;
     }
     
     const allMunicipalities = filterMunicipalitiesByPrefecture(

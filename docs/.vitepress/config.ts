@@ -45,7 +45,9 @@ export default defineConfig({
             { text: 'テーマ', link: '/guide/themes' },
             { text: 'イベント処理', link: '/guide/events' },
             { text: '簡略化レベル', link: '/guide/simplification' },
-            { text: 'ディフォルメ機能', link: '/guide/deformation' }
+            { text: 'ディフォルメ機能', link: '/guide/deformation' },
+            { text: 'パフォーマンス最適化', link: '/guide/performance' },
+            { text: '動的ローディング', link: '/guide/dynamic-loading' }
           ]
         },
         {
