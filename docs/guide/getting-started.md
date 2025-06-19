@@ -56,10 +56,11 @@ const map = new JapanMapSelector({
   theme: 'default'
 });
 
-// 地理データを読み込む
+// 地理データを読み込む（デフォルトは中精度）
+// パッケージに含まれるデータを使用
 await map.initialize(
-  '/path/to/prefectures.json',
-  '/path/to/municipalities.json'
+  './node_modules/japan-map-selector/src/data/simplified/prefectures-medium.geojson',
+  './node_modules/japan-map-selector/src/data/simplified/municipalities-medium.geojson'
 );
 
 // コンテナに地図を描画
@@ -110,8 +111,8 @@ function App() {
         width={800}
         height={600}
         theme="colorful"
-        prefectureDataUrl="/data/prefectures.json"
-        municipalityDataUrl="/data/municipalities.json"
+        prefectureDataUrl="/data/prefectures-medium.json"
+        municipalityDataUrl="/data/municipalities-medium.json"
         onPrefectureSelect={handlePrefectureSelect}
         onMunicipalitySelect={handleMunicipalitySelect}
       />
@@ -145,8 +146,8 @@ export default App;
     width={800}
     height={600}
     theme="colorful"
-    prefectureDataUrl="/data/prefectures.json"
-    municipalityDataUrl="/data/municipalities.json"
+    prefectureDataUrl="/data/prefectures-medium.json"
+    municipalityDataUrl="/data/municipalities-medium.json"
     on:prefectureSelect={handlePrefectureSelect}
     on:municipalitySelect={handleMunicipalitySelect}
   />
@@ -155,13 +156,33 @@ export default App;
 
 ## データの準備
 
-地図データは [smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography) から取得できます。
+このパッケージには、中精度の地図データがデフォルトで含まれています。
 
-必要なファイル：
-- `prefectures.json` - 都道府県の境界データ
-- `municipalities.json` - 市区町村の境界データ
+### パッケージに含まれるデータの使用
 
-これらのファイルを適切な場所に配置し、URLを指定してください。
+```javascript
+// Webpack、Viteなどのバンドラーを使用する場合
+import prefectureData from 'japan-map-selector/src/data/simplified/prefectures-medium.geojson';
+import municipalityData from 'japan-map-selector/src/data/simplified/municipalities-medium.geojson';
+
+await map.initialize(prefectureData, municipalityData);
+```
+
+### CDNから直接読み込む場合
+
+```javascript
+// unpkgから読み込む
+await map.initialize(
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-medium.geojson',
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-medium.geojson'
+);
+```
+
+### その他の精度レベル
+
+より高精度または低精度のデータが必要な場合は、[データパッケージ](/guide/data-packages)のガイドを参照してください。
+
+地図データは [smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography) を基に作成されています。
 
 ## 次のステップ
 

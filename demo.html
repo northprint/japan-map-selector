@@ -440,8 +440,8 @@
       
       // データの読み込み
       try {
-        let prefectureFile = './src/data/prefectures.geojson';
-        let municipalityFile = './src/data/municipalities.geojson';
+        let prefectureFile = './src/data/simplified/prefectures-medium.geojson';
+        let municipalityFile = './src/data/simplified/municipalities-medium.geojson';
         
         if (currentSimplificationLevel !== 'original') {
           prefectureFile = `./src/data/simplified/prefectures-${currentSimplificationLevel}.geojson`;

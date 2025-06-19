@@ -184,8 +184,8 @@
     // データの読み込みと初期化
     // 注意: 実際の使用時は、データファイルのパスを適切に設定してください
     selector.initialize(
-      '../src/data/prefectures.geojson',
-      '../src/data/municipalities.geojson'
+      '../src/data/simplified/prefectures-medium.geojson',
+      '../src/data/simplified/municipalities-medium.geojson'
     ).then(() => {
       console.log('地図データの読み込みが完了しました');
       render(selector.getState());

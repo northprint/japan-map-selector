@@ -34,7 +34,8 @@ export default defineConfig({
           items: [
             { text: 'Getting Started', link: '/guide/getting-started' },
             { text: 'インストール', link: '/guide/installation' },
-            { text: '基本的な使い方', link: '/guide/basic-usage' }
+            { text: '基本的な使い方', link: '/guide/basic-usage' },
+            { text: 'データパッケージ', link: '/guide/data-packages' }
           ]
         },
         {

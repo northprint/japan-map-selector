@@ -26,8 +26,10 @@ cat prefectures_temp.geojson | jq '.features[] | select(.properties.admin == "Ja
 
 テスト用の簡易データを以下に用意しています：
 
-- `prefectures.geojson`: 都道府県データ（手動で作成が必要）
-- `municipalities.geojson`: 市区町村データ（手動で作成が必要）
+- `simplified/prefectures-medium.geojson`: デフォルトの都道府県データ（中精度）
+- `simplified/municipalities-medium.geojson`: デフォルトの市区町村データ（中精度）
+- `prefectures.geojson`: オリジナルの都道府県データ（最高精度、オプショナルパッケージ）
+- `municipalities.geojson`: オリジナルの市区町村データ（最高精度、オプショナルパッケージ）
 
 ## データ形式
 

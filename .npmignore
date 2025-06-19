@@ -1,36 +1,49 @@
 # Source files
-src/**/*.test.ts
-src/**/*.spec.ts
+src/**/*.ts
+src/**/*.tsx
+src/**/*.svelte
+*.ts
+*.tsx
 
-# Development files
-demo.html
-examples/
-docs/
-.vitepress/
-screenshot-demo.html
-
-# Build files
+# Configuration files
 rollup.config.js
 tsconfig.json
-.eslintrc.json
+.github/
+.vscode/
 
-# Git files
+# Documentation
+docs/
+examples/
+*.md
+!README.md
+!LICENSE
+!ATTRIBUTION.md
+
+# Scripts
+scripts/
+
+# Demo files
+demo.html
+screenshot-demo.html
+
+# Development files
+node_modules/
 .git/
 .gitignore
 
-# IDE files
-.vscode/
-.idea/
-
-# Temporary files
+# Build artifacts
 *.log
-.DS_Store
-node_modules/
-coverage/
-.tmp/
+*.map
 
-# Documentation source
-*.md
-!README.md
-!ATTRIBUTION.md
-!LICENSE
+# Data files (except medium precision)
+src/data/*.geojson
+src/data/simplified/*.geojson
+!src/data/simplified/prefectures-medium.geojson
+!src/data/simplified/municipalities-medium.geojson
+src/data/simplified-grouped/
+
+# Test files
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js

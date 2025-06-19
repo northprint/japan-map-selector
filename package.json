@@ -1,10 +1,10 @@
 {
   "name": "japan-map-selector",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "Interactive Japan map component for selecting prefectures and municipalities",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",
@@ -16,7 +16,8 @@
   },
   "files": [
     "dist",
-    "src/data",
+    "src/data/simplified/prefectures-medium.geojson",
+    "src/data/simplified/municipalities-medium.geojson",
     "README.md",
     "LICENSE",
     "ATTRIBUTION.md"

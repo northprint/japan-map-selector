@@ -57,8 +57,8 @@ const selector = new JapanMapSelector({
 
 // Load map data
 await selector.initialize(
-  'path/to/prefectures.geojson',
-  'path/to/municipalities.geojson'
+  'path/to/prefectures-medium.geojson',
+  'path/to/municipalities-medium.geojson'
 );
 
 // Listen for selection events
@@ -114,8 +114,8 @@ function MapComponent() {
   height={600}
   theme="default"
   on:prefectureSelected={handlePrefectureSelect}
-  prefectureDataUrl="/data/prefectures.geojson"
-  municipalityDataUrl="/data/municipalities.geojson"
+  prefectureDataUrl="/data/prefectures-medium.geojson"
+  municipalityDataUrl="/data/municipalities-medium.geojson"
 />
 ```
 
@@ -123,9 +123,46 @@ function MapComponent() {
 
 This package includes map data derived from the National Land Numerical Information (国土数値情報) provided by the Ministry of Land, Infrastructure, Transport and Tourism of Japan.
 
-The data files are located in `src/data/`:
-- `prefectures.geojson` - Prefecture boundaries
-- `municipalities.geojson` - Municipality boundaries
+### Default Data (Included)
+
+The package includes medium precision data by default:
+- Prefecture boundaries: 272KB
+- Municipality boundaries: 2.0MB
+- **Total size: ~2.3MB**
+
+### Using Default Data
+
+The default medium precision data is automatically included. You can use relative paths:
+
+```javascript
+// Using default data (medium precision)
+await map.initialize(
+  './node_modules/japan-map-selector/src/data/simplified/prefectures-medium.geojson',
+  './node_modules/japan-map-selector/src/data/simplified/municipalities-medium.geojson'
+);
+```
+
+Or with a bundler that resolves node_modules:
+
+```javascript
+import prefectureData from 'japan-map-selector/src/data/simplified/prefectures-medium.geojson';
+import municipalityData from 'japan-map-selector/src/data/simplified/municipalities-medium.geojson';
+
+await map.initialize(prefectureData, municipalityData);
+```
+
+### Optional Data Packages
+
+For other precision levels, install additional packages:
+
+| Package | Install Command | Total Size | Use Case |
+|---------|----------------|------------|----------|
+| Original (Highest) | `npm install japan-map-selector-data-original` | ~10.7MB | Detailed analysis |
+| High | `npm install japan-map-selector-data-high` | ~4.1MB | Better quality |
+| Low | `npm install japan-map-selector-data-low` | ~1.3MB | Mobile apps |
+| Ultra Low | `npm install japan-map-selector-data-ultra-low` | ~696KB | Previews |
+
+**Note: These optional packages are not yet published. For now, only medium precision data is available.**
 
 ## API Reference
 

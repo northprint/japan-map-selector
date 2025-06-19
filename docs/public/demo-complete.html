@@ -492,8 +492,8 @@
         
         // データの読み込み
         try {
-          let prefectureFile = `${dataBaseUrl}/prefectures.geojson`;
-          let municipalityFile = `${dataBaseUrl}/municipalities.geojson`;
+          let prefectureFile = `${dataBaseUrl}/simplified/prefectures-medium.geojson`;
+          let municipalityFile = `${dataBaseUrl}/simplified/municipalities-medium.geojson`;
           
           if (currentSimplificationLevel !== 'original') {
             prefectureFile = `${dataBaseUrl}/simplified/prefectures-${currentSimplificationLevel}.geojson`;

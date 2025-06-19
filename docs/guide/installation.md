@@ -1,6 +1,6 @@
 # インストール
 
-Japan Map Selectorは、npm、yarn、pnpm、またはCDN経由でインストールできます。
+Japan Map Selectorは、npm、yarn、pnpm、またはCDN経由でインストールできます。パッケージサイズを最適化するため、デフォルトでは中精度のデータのみが含まれています。
 
 ## パッケージマネージャーを使用
 
@@ -31,7 +31,7 @@ pnpm add japan-map-selector
 <script src="https://unpkg.com/japan-map-selector@latest/dist/index.js"></script>
 
 <!-- 特定のバージョン -->
-<script src="https://unpkg.com/japan-map-selector@1.0.0/dist/index.js"></script>
+<script src="https://unpkg.com/japan-map-selector@0.1.0/dist/index.js"></script>
 ```
 
 ### jsDelivr
@@ -41,36 +41,61 @@ pnpm add japan-map-selector
 <script src="https://cdn.jsdelivr.net/npm/japan-map-selector@latest/dist/index.js"></script>
 
 <!-- 特定のバージョン -->
-<script src="https://cdn.jsdelivr.net/npm/japan-map-selector@1.0.0/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/japan-map-selector@0.1.0/dist/index.js"></script>
 ```
 
-## 地理データの取得
+### CDNを使用する場合の注意点
 
-地図を表示するには、GeoJSONフォーマットの地理データが必要です。
+CDNから読み込む場合も、地図データは別途読み込む必要があります：
 
-### オプション1: GitHubから直接ダウンロード
-
-[smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography) から必要なファイルをダウンロードします：
-
-```bash
-# 都道府県データ
-curl -O https://raw.githubusercontent.com/smartnews-smri/japan-topography/master/data/municipality/geojson/s0010/prefectures.json
-
-# 市区町村データ
-curl -O https://raw.githubusercontent.com/smartnews-smri/japan-topography/master/data/municipality/geojson/s0010/N03-21_210101.json
+```html
+<script>
+  const map = new JapanMapSelector.JapanMapSelector({
+    width: 800,
+    height: 600
+  });
+  
+  // CDNから地図データも読み込む
+  await map.initialize(
+    'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-medium.geojson',
+    'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-medium.geojson'
+  );
+</script>
 ```
 
-### オプション2: 簡略化されたデータを使用
+## パッケージ内容
 
-パフォーマンスを向上させるため、簡略化されたデータを使用することを推奨します：
+インストールされるパッケージには以下が含まれます：
 
-```bash
-# 中精度の都道府県データ（推奨）
-curl -O https://example.com/prefectures-medium.json
+### 含まれるもの
 
-# 中精度の市区町村データ（推奨）
-curl -O https://example.com/municipalities-medium.json
+- **ライブラリ本体** (~150KB minified)
+- **中精度の地図データ** (~2.3MB)
+  - 都道府県データ: `src/data/simplified/prefectures-medium.geojson` (272KB)
+  - 市区町村データ: `src/data/simplified/municipalities-medium.geojson` (2.0MB)
+- **TypeScript型定義**
+
+### 地図データの使用方法
+
+パッケージに含まれる地図データは、以下の方法で読み込めます：
+
+```javascript
+// オプション1: ファイルパスを直接指定
+await map.initialize(
+  './node_modules/japan-map-selector/src/data/simplified/prefectures-medium.geojson',
+  './node_modules/japan-map-selector/src/data/simplified/municipalities-medium.geojson'
+);
+
+// オプション2: バンドラー（Webpack、Vite等）でインポート
+import prefectureData from 'japan-map-selector/src/data/simplified/prefectures-medium.geojson';
+import municipalityData from 'japan-map-selector/src/data/simplified/municipalities-medium.geojson';
+
+await map.initialize(prefectureData, municipalityData);
 ```
+
+### その他の精度レベル
+
+より高精度または低精度のデータが必要な場合は、将来リリース予定のオプショナルパッケージを利用できます。詳細は[データパッケージ](/guide/data-packages)のガイドを参照してください。
 
 ## プロジェクトの構成
 
@@ -79,10 +104,9 @@ curl -O https://example.com/municipalities-medium.json
 ```
 your-project/
 ├── node_modules/
-├── public/
-│   └── data/
-│       ├── prefectures.json      # 都道府県データ
-│       └── municipalities.json   # 市区町村データ
+│   └── japan-map-selector/
+│       ├── dist/                 # ライブラリ本体
+│       └── src/data/simplified/  # 地図データ
 ├── src/
 │   └── App.js                    # あなたのアプリケーション
 └── package.json
