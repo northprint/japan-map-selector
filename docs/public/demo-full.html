@@ -429,14 +429,22 @@
           selectionInfo.innerHTML = `<p>選択中: <strong>${municipality.name}</strong></p>`;
         },
         onMunicipalityLoadStart: (prefecture) => {
-          debug(`市区町村データを読み込み中: ${prefecture.name}`);
+          debug(`市区町村データを読み込み中: ${prefecture.name} (コード: ${prefecture.code})`);
           selectionInfo.innerHTML = `<p>${prefecture.name}の市区町村データを読み込んでいます...</p>`;
+          // デバッグ用：読み込むURLを確認
+          const expectedUrl = `https://unpkg.com/japan-map-selector@0.2.1/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
+          debug(`予想されるURL: ${expectedUrl}`);
         },
         onMunicipalityLoadEnd: (prefecture) => {
           debug(`市区町村データ読み込み完了: ${prefecture.name}`);
-          // 市区町村データ読み込み後に再レンダリング（ビューボックスも更新）
+          // デバッグ用：読み込まれたデータを確認
           if (selector) {
             const state = selector.getState();
+            const municipalities = selector.getMunicipalities();
+            debug(`読み込まれた市区町村数: ${municipalities.length}`);
+            if (municipalities.length > 0) {
+              debug(`最初の市区町村: ${municipalities[0].name} (都道府県コード: ${municipalities[0].prefectureCode})`);
+            }
             render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
           }
         }
