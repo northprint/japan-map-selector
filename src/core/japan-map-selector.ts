@@ -213,22 +213,27 @@ export class JapanMapSelector {
             const municipalitiesForPrefecture = await loadMunicipalitiesForPrefecture(prefectureCode);
             this.municipalitiesCache.set(prefectureCode, municipalitiesForPrefecture);
             
-            // 読み込み終了を通知
+            // キャッシュから市区町村データを設定（読み込み終了通知の前に設定）
+            this.municipalities = municipalitiesForPrefecture;
+            
+            // 読み込み終了を通知（データ設定後）
             if (this.props.onMunicipalityLoadEnd) {
               this.props.onMunicipalityLoadEnd(prefecture);
             }
           } catch (error) {
             console.error(`Failed to load municipalities for prefecture ${prefectureCode}:`, error);
+            // エラー時は空の配列を設定
+            this.municipalities = [];
             // 読み込みエラー時も終了を通知
             if (this.props.onMunicipalityLoadEnd) {
               this.props.onMunicipalityLoadEnd(prefecture);
             }
             return;
           }
+        } else {
+          // キャッシュから市区町村データを設定
+          this.municipalities = this.municipalitiesCache.get(prefectureCode) || [];
         }
-        
-        // キャッシュから市区町村データを設定
-        this.municipalities = this.municipalitiesCache.get(prefectureCode) || [];
       }
       
       // 東京都・北海道の場合は本土の境界を使用

@@ -433,6 +433,9 @@
         },
         onMunicipalityLoadEnd: (prefecture) => {
           debug(`市区町村データ読み込み完了: ${prefecture.name}`);
+          // ライブラリの修正により、ここで市区町村データが利用可能
+          const municipalities = selector.getSelectedMunicipalities();
+          debug(`読み込まれた市区町村数: ${municipalities.length}`);
         }
       });
       
