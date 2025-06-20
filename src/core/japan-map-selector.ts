@@ -201,6 +201,9 @@ export class JapanMapSelector {
       
       // 動的読み込みが有効な場合
       if (this.isDynamicLoadingEnabled) {
+        // 都道府県を切り替えた時点で市区町村データをクリア
+        this.municipalities = [];
+        
         // キャッシュをチェック
         if (!this.municipalitiesCache.has(prefectureCode)) {
           // 読み込み開始を通知
