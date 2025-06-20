@@ -716,7 +716,13 @@
           path.addEventListener('click', async (e) => {
             if (hasMoved) return;
             e.stopPropagation();
-            await selector.selectPrefecture(prefecture.code);
+            debug(`都道府県クリック: ${prefecture.name} (${prefecture.code})`);
+            try {
+              await selector.selectPrefecture(prefecture.code);
+            } catch (error) {
+              console.error('都道府県選択エラー:', error);
+              debug(`エラー: ${error.message}`);
+            }
           });
           
           path.addEventListener('mouseenter', () => {
@@ -764,6 +770,10 @@
       } else {
         // 市区町村の描画
         const municipalities = selector.getSelectedMunicipalities();
+        debug(`市区町村描画: ${municipalities.length}件`);
+        if (municipalities.length > 0) {
+          debug(`最初の市区町村: ${municipalities[0].name} (都道府県: ${municipalities[0].prefectureCode})`);
+        }
         
         municipalities.forEach(municipality => {
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
