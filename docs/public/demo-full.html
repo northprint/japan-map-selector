@@ -403,8 +403,8 @@
     
     // デバッグ関数
     function debug(msg) {
+      console.log(`[DEBUG] ${msg}`); // 常にコンソールに出力
       if (!debugMode) return;
-      console.log(`[DEBUG] ${msg}`); // コンソールにも出力
       const time = new Date().toLocaleTimeString();
       debugInfo.innerHTML += `<br>${time}: ${msg}`;
       debugInfo.scrollTop = debugInfo.scrollHeight;
@@ -435,6 +435,8 @@
     
     // 都道府県別データロードの有効/無効（デフォルトで有効）
     let enableDynamicLoading = true;
+    
+    console.log('[DEBUG] 初期化開始 - デバッグモード:', debugMode);
     
     // URLパラメータで動的ローディングを無効化 (?dynamic=0)
     const disableDynamic = urlParams.get('dynamic') === '0';
@@ -823,8 +825,10 @@
       } else {
         // 市区町村の描画
         const municipalities = selector.getSelectedMunicipalities();
+        console.log(`[RENDER] 市区町村描画: ${municipalities.length}件`);
         debug(`市区町村描画: ${municipalities.length}件`);
         if (municipalities.length > 0) {
+          console.log(`[RENDER] 最初の市区町村:`, municipalities[0]);
           debug(`最初の市区町村: ${municipalities[0].name} (都道府県: ${municipalities[0].prefectureCode})`);
         }
         
