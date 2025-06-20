@@ -340,10 +340,8 @@
   </div>
 
   <script type="module">
-    // CDNから読み込む（npmパッケージ利用の例として）
-    // 本番環境では: import { JapanMapSelector } from 'https://unpkg.com/japan-map-selector@latest/dist/index.es.js';
-    // 開発環境では: import { JapanMapSelector } from '/japan-map-selector/dist/index.es.js';
-    const { JapanMapSelector } = await import('/japan-map-selector/dist/index.es.js');
+    // npmパッケージをCDN経由で読み込む
+    const { JapanMapSelector } = await import('https://unpkg.com/japan-map-selector@0.2.1/dist/index.es.js');
     
     // 要素の取得
     const svg = document.getElementById('map-svg');
@@ -428,7 +426,7 @@
         disabledPrefectureStroke: '#aaaaaa',
         simplificationLevel: currentSimplificationLevel,
         enableDynamicLoading: enableDynamicLoading,
-        dynamicDataBaseUrl: '/japan-map-selector/src/data',
+        dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.1/src/data',
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
@@ -469,13 +467,14 @@
       
       // データの読み込み
       try {
-        let prefectureFile = '/japan-map-selector/src/data/simplified/prefectures-medium.geojson';
-        let municipalityFile = enableDynamicLoading ? '' : '/japan-map-selector/src/data/simplified/municipalities-medium.geojson';
+        const cdnBase = 'https://unpkg.com/japan-map-selector@0.2.1/src/data/simplified';
+        let prefectureFile = `${cdnBase}/prefectures-medium.geojson`;
+        let municipalityFile = enableDynamicLoading ? '' : `${cdnBase}/municipalities-medium.geojson`;
         
         if (currentSimplificationLevel !== 'original') {
-          prefectureFile = `/japan-map-selector/src/data/simplified/prefectures-${currentSimplificationLevel}.geojson`;
+          prefectureFile = `${cdnBase}/prefectures-${currentSimplificationLevel}.geojson`;
           if (!enableDynamicLoading) {
-            municipalityFile = `/japan-map-selector/src/data/simplified/municipalities-${currentSimplificationLevel}.geojson`;
+            municipalityFile = `${cdnBase}/municipalities-${currentSimplificationLevel}.geojson`;
           }
         }
         
