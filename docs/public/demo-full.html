@@ -763,7 +763,7 @@
       if (target.classList.contains('prefecture-path')) {
         const code = target.getAttribute('data-code');
         const name = target.getAttribute('data-name');
-        if (code && !previousSelectedPrefecture) {
+        if (code && !selector.getState().selectedPrefecture) {
           // 前のホバー状態をクリア
           if (currentHoveredPrefecture && currentHoveredPrefecture !== target) {
             currentHoveredPrefecture.removeAttribute('data-hovered');
