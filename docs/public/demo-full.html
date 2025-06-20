@@ -492,28 +492,30 @@
           debug(`市区町村データ読み込み完了: ${prefecture.name}`);
           // ローディング表示を非表示
           loadingOverlay.style.display = 'none';
-          // デバッグ用：読み込まれたデータを確認
-          if (selector) {
-            const state = selector.getState();
-            const municipalities = selector.getSelectedMunicipalities();
-            debug(`読み込まれた市区町村数: ${municipalities.length}`);
-            if (municipalities.length > 0) {
-              debug(`最初の市区町村: ${municipalities[0].name} (都道府県コード: ${municipalities[0].prefectureCode})`);
-            } else {
-              // 市区町村が0件の場合、エラーの可能性
-              console.error('[ERROR] 市区町村データが0件です。都道府県:', prefecture);
-              // 手動でfetchして確認
-              const testUrl = `https://unpkg.com/japan-map-selector@0.2.1/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
-              fetch(testUrl)
-                .then(res => res.json())
-                .then(data => {
-                  console.log('[TEST] 直接fetch結果:', data);
-                  console.log('[TEST] features数:', data.features ? data.features.length : 'featuresがありません');
-                })
-                .catch(err => console.error('[TEST] fetch失敗:', err));
+          // 少し待ってからデータを確認（ライブラリの処理が完了するまで）
+          setTimeout(() => {
+            if (selector) {
+              const state = selector.getState();
+              const municipalities = selector.getSelectedMunicipalities();
+              debug(`読み込まれた市区町村数（遅延後）: ${municipalities.length}`);
+              if (municipalities.length > 0) {
+                debug(`最初の市区町村: ${municipalities[0].name} (都道府県コード: ${municipalities[0].prefectureCode})`);
+              } else {
+                // 市区町村が0件の場合、エラーの可能性
+                console.error('[ERROR] 市区町村データが0件です。都道府県:', prefecture);
+                // 手動でfetchして確認
+                const testUrl = `https://unpkg.com/japan-map-selector@0.2.1/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
+                fetch(testUrl)
+                  .then(res => res.json())
+                  .then(data => {
+                    console.log('[TEST] 直接fetch結果:', data);
+                    console.log('[TEST] features数:', data.features ? data.features.length : 'featuresがありません');
+                  })
+                  .catch(err => console.error('[TEST] fetch失敗:', err));
+              }
+              render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
             }
-            render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
-          }
+          }, 100); // 100ms待つ
         }
       });
       
@@ -527,6 +529,12 @@
         const hoveredMunicipalityChanged = previousHoveredMunicipality !== state.hoveredMunicipality;
         
         const shouldUpdateViewBox = prefectureChanged;
+        
+        // 都道府県が変更された場合、市区町村データを確認
+        if (prefectureChanged && state.selectedPrefecture) {
+          const municipalities = selector.getSelectedMunicipalities();
+          debug(`[stateChanged] 選択された都道府県: ${state.selectedPrefecture.name}, 市区町村数: ${municipalities.length}`);
+        }
         
         // 何らかの状態変更があれば再レンダリング
         if (prefectureChanged || hoveredPrefectureChanged || hoveredMunicipalityChanged) {
