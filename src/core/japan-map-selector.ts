@@ -659,11 +659,43 @@ export class JapanMapSelector {
       
       // 離島表示の場合はビューを調整
       if (this.state.showTokyoIslands) {
-        // 離島エリアの境界を計算
-        const islandBounds: [[number, number], [number, number]] = [[138.0, 24.0], [143.0, 35.0]];
-        const { viewBox, projection } = calculateViewBox(islandBounds);
-        this.state.viewBox = viewBox;
-        this.currentProjection = projection;
+        // 離島の市区町村から実際の境界を計算
+        const islandMunicipalities = this.getSelectedMunicipalities();
+        if (islandMunicipalities.length > 0) {
+          let minLng = Infinity, maxLng = -Infinity;
+          let minLat = Infinity, maxLat = -Infinity;
+          
+          islandMunicipalities.forEach(municipality => {
+            const geometry = municipality.feature.geometry;
+            const updateBounds = (coord: number[]) => {
+              const [lng, lat] = coord;
+              minLng = Math.min(minLng, lng);
+              maxLng = Math.max(maxLng, lng);
+              minLat = Math.min(minLat, lat);
+              maxLat = Math.max(maxLat, lat);
+            };
+            
+            if (geometry.type === 'Polygon') {
+              (geometry.coordinates as number[][][]).forEach(ring => 
+                ring.forEach(updateBounds)
+              );
+            } else if (geometry.type === 'MultiPolygon') {
+              (geometry.coordinates as number[][][][]).forEach(polygon =>
+                polygon.forEach(ring => ring.forEach(updateBounds))
+              );
+            }
+          });
+          
+          // パディングを追加
+          const padding = 0.5;
+          const islandBounds: [[number, number], [number, number]] = [
+            [minLng - padding, minLat - padding], 
+            [maxLng + padding, maxLat + padding]
+          ];
+          const { viewBox, projection } = calculateViewBox(islandBounds);
+          this.state.viewBox = viewBox;
+          this.currentProjection = projection;
+        }
       } else {
         // 本土エリアに戻す
         const mainlandBounds: [[number, number], [number, number]] = [[138.5, 35.3], [140.0, 36.0]];
