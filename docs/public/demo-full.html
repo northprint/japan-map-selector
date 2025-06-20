@@ -403,7 +403,11 @@
       
       // 既存のセレクターをクリーンアップ
       if (selector) {
+        // イベントリスナーを削除
+        selector.off('stateChanged');
         selector = null;
+        // SVGの内容をクリア
+        svg.innerHTML = '';
       }
       
       // 新しいセレクターを作成
@@ -415,6 +419,7 @@
         disabledPrefectureStroke: '#aaaaaa',
         enableDynamicLoading: enableDynamicLoading,
         dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.1/src/data',
+        dynamicDataPrecision: 'medium', // 動的ローディングでも medium 精度を使用
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
@@ -814,11 +819,15 @@
     
     // イベントハンドラー
     backButton.addEventListener('click', () => {
-      selector.resetView();
+      if (selector) {
+        selector.resetView();
+      }
     });
     
     toggleIslandsButton.addEventListener('click', () => {
-      selector.toggleTokyoIslands();
+      if (selector) {
+        selector.toggleTokyoIslands();
+      }
     });
     
     themeSelect.addEventListener('change', (e) => {
