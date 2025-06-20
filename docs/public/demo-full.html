@@ -429,6 +429,11 @@
         },
         onMunicipalityLoadEnd: (prefecture) => {
           debug(`市区町村データ読み込み完了: ${prefecture.name}`);
+          // 市区町村データ読み込み後に再レンダリング（ビューボックスも更新）
+          if (selector) {
+            const state = selector.getState();
+            render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
+          }
         }
       });
       
