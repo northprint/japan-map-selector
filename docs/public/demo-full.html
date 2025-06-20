@@ -469,7 +469,7 @@
         disabledPrefectureStroke: '#aaaaaa',
         enableDynamicLoading: enableDynamicLoading,
         dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.1/src/data',
-        dynamicDataPrecision: 'medium', // 動的ローディングでも medium 精度を使用
+        simplificationLevel: 'medium', // 動的ローディングの精度レベル
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
@@ -499,6 +499,18 @@
             debug(`読み込まれた市区町村数: ${municipalities.length}`);
             if (municipalities.length > 0) {
               debug(`最初の市区町村: ${municipalities[0].name} (都道府県コード: ${municipalities[0].prefectureCode})`);
+            } else {
+              // 市区町村が0件の場合、エラーの可能性
+              console.error('[ERROR] 市区町村データが0件です。都道府県:', prefecture);
+              // 手動でfetchして確認
+              const testUrl = `https://unpkg.com/japan-map-selector@0.2.1/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
+              fetch(testUrl)
+                .then(res => res.json())
+                .then(data => {
+                  console.log('[TEST] 直接fetch結果:', data);
+                  console.log('[TEST] features数:', data.features ? data.features.length : 'featuresがありません');
+                })
+                .catch(err => console.error('[TEST] fetch失敗:', err));
             }
             render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
           }
