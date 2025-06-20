@@ -212,6 +212,43 @@
       transition: fill 0.2s ease;
     }
     
+    /* ローディング表示 */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .loading-content {
+      text-align: center;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
     /* レスポンシブ対応 */
     @media (max-width: 768px) {
       .controls-panel {
@@ -312,6 +349,14 @@
       <!-- ホバー情報 -->
       <div id="hover-info" class="hover-info" style="display: none;"></div>
       
+      <!-- ローディング表示 -->
+      <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+          <div class="loading-spinner"></div>
+          <p id="loading-text">読み込み中...</p>
+        </div>
+      </div>
+      
       <!-- 出典表示 -->
       <div class="attribution">
         地図データ：<a href="https://nlftp.mlit.go.jp/ksj/index.html" target="_blank" rel="noopener">国土数値情報（行政区域データ）</a>（国土交通省）を加工して作成
@@ -346,6 +391,8 @@
     const hoverInfo = document.getElementById('hover-info');
     const selectionInfo = document.getElementById('selection-info');
     const debugInfo = document.getElementById('debug-info');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingText = document.getElementById('loading-text');
     
     // デバッグモードの切り替え（URLパラメータ ?debug=1 で有効化）
     const urlParams = new URLSearchParams(window.location.search);
@@ -357,6 +404,7 @@
     // デバッグ関数
     function debug(msg) {
       if (!debugMode) return;
+      console.log(`[DEBUG] ${msg}`); // コンソールにも出力
       const time = new Date().toLocaleTimeString();
       debugInfo.innerHTML += `<br>${time}: ${msg}`;
       debugInfo.scrollTop = debugInfo.scrollHeight;
@@ -431,12 +479,17 @@
         onMunicipalityLoadStart: (prefecture) => {
           debug(`市区町村データを読み込み中: ${prefecture.name} (コード: ${prefecture.code})`);
           selectionInfo.innerHTML = `<p>${prefecture.name}の市区町村データを読み込んでいます...</p>`;
+          // ローディング表示
+          loadingText.textContent = `${prefecture.name}の市区町村データを読み込んでいます...`;
+          loadingOverlay.style.display = 'flex';
           // デバッグ用：読み込むURLを確認
           const expectedUrl = `https://unpkg.com/japan-map-selector@0.2.1/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
           debug(`予想されるURL: ${expectedUrl}`);
         },
         onMunicipalityLoadEnd: (prefecture) => {
           debug(`市区町村データ読み込み完了: ${prefecture.name}`);
+          // ローディング表示を非表示
+          loadingOverlay.style.display = 'none';
           // デバッグ用：読み込まれたデータを確認
           if (selector) {
             const state = selector.getState();
