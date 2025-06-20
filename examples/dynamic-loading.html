@@ -169,10 +169,8 @@
       dynamicDataBaseUrl: './src/data',
       simplificationLevel: 'low', // 低精度で高速化
       onPrefectureSelect: (prefecture) => {
-        console.log('選択された都道府県:', prefecture.name);
       },
       onMunicipalitySelect: (municipality) => {
-        console.log('選択された市区町村:', municipality.name);
         updateStatus(`${municipality.name}が選択されました`);
       },
       onMunicipalityLoadStart: (prefecture) => {

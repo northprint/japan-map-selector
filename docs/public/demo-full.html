@@ -290,6 +290,13 @@
           関東地方のみ選択可能
         </label>
       </div>
+      
+      <div class="control-group">
+        <label style="display: flex; align-items: center;">
+          <input type="checkbox" id="dynamic-loading" checked>
+          動的データ読み込み
+        </label>
+      </div>
     </div>
     
     <!-- 地図エリア -->
@@ -333,9 +340,10 @@
   </div>
 
   <script type="module">
-    // dist/index.es.js から必要な部分を直接読み込み
-    const module = await import('../../dist/index.es.js');
-    const { JapanMapSelector } = module;
+    // CDNから読み込む（npmパッケージ利用の例として）
+    // 本番環境では: import { JapanMapSelector } from 'https://unpkg.com/japan-map-selector@latest/dist/index.es.js';
+    // 開発環境では: import { JapanMapSelector } from '/japan-map-selector/dist/index.es.js';
+    const { JapanMapSelector } = await import('/japan-map-selector/dist/index.es.js');
     
     // 要素の取得
     const svg = document.getElementById('map-svg');
@@ -390,14 +398,16 @@
     let currentSelectablePrefectures = undefined;
     let currentSimplificationLevel = 'low'; // デフォルトを低精度に変更
     
-    // 都道府県別データロードの有効/無効
-    let enableDynamicLoading = false;
+    // 都道府県別データロードの有効/無効（デフォルトで有効）
+    let enableDynamicLoading = true;
     
-    // URLパラメータで動的ローディングを有効化 (?dynamic=1)
-    const enableDynamic = urlParams.get('dynamic') === '1';
-    if (enableDynamic) {
-      enableDynamicLoading = true;
-      debug('動的データローディングを有効化');
+    // URLパラメータで動的ローディングを無効化 (?dynamic=0)
+    const disableDynamic = urlParams.get('dynamic') === '0';
+    if (disableDynamic) {
+      enableDynamicLoading = false;
+      debug('動的データローディングを無効化');
+    } else {
+      debug('動的データローディングを有効化（デフォルト）');
     }
     
     // セレクターの初期化関数
@@ -418,7 +428,7 @@
         disabledPrefectureStroke: '#aaaaaa',
         simplificationLevel: currentSimplificationLevel,
         enableDynamicLoading: enableDynamicLoading,
-        dynamicDataBaseUrl: '../../src/data',
+        dynamicDataBaseUrl: '/japan-map-selector/src/data',
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
           selectionInfo.innerHTML = `<p>選択中: <strong>${prefecture.name}</strong></p>`;
@@ -459,15 +469,17 @@
       
       // データの読み込み
       try {
-        let prefectureFile = '../../src/data/simplified/prefectures-medium.geojson';
-        let municipalityFile = '../../src/data/simplified/municipalities-medium.geojson';
+        let prefectureFile = '/japan-map-selector/src/data/simplified/prefectures-medium.geojson';
+        let municipalityFile = enableDynamicLoading ? '' : '/japan-map-selector/src/data/simplified/municipalities-medium.geojson';
         
         if (currentSimplificationLevel !== 'original') {
-          prefectureFile = `../../src/data/simplified/prefectures-${currentSimplificationLevel}.geojson`;
-          municipalityFile = `../../src/data/simplified/municipalities-${currentSimplificationLevel}.geojson`;
+          prefectureFile = `/japan-map-selector/src/data/simplified/prefectures-${currentSimplificationLevel}.geojson`;
+          if (!enableDynamicLoading) {
+            municipalityFile = `/japan-map-selector/src/data/simplified/municipalities-${currentSimplificationLevel}.geojson`;
+          }
         }
         
-        debug(`データファイル: ${prefectureFile}, ${municipalityFile}`);
+        debug(`データファイル: ${prefectureFile}, ${municipalityFile || '動的ローディング有効'}`);
         
         await selector.initialize(prefectureFile, municipalityFile);
         
@@ -844,6 +856,13 @@
       } else {
         currentSelectablePrefectures = undefined;
       }
+      await initializeSelector();
+    });
+    
+    const dynamicLoadingCheckbox = document.getElementById('dynamic-loading');
+    dynamicLoadingCheckbox.addEventListener('change', async (e) => {
+      enableDynamicLoading = e.target.checked;
+      debug(`動的データ読み込み: ${enableDynamicLoading ? '有効' : '無効'}`);
       await initializeSelector();
     });
     

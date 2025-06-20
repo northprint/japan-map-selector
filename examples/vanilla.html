@@ -187,10 +187,8 @@
       '../src/data/simplified/prefectures-medium.geojson',
       '../src/data/simplified/municipalities-medium.geojson'
     ).then(() => {
-      console.log('地図データの読み込みが完了しました');
       render(selector.getState());
     }).catch(error => {
-      console.error('データの読み込みエラー:', error);
       selectionInfo.innerHTML = `<p style="color: red;">エラー: データファイルが見つかりません。src/data/にGeoJSONファイルを配置してください。</p>`;
     });
   </script>
