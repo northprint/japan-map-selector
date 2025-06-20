@@ -212,6 +212,15 @@
       transition: fill 0.2s ease;
     }
     
+    /* データ属性を使用したホバー効果 */
+    .prefecture-path[data-hovered="true"] {
+      filter: brightness(1.2);
+    }
+    
+    .municipality-path[data-hovered="true"] {
+      filter: brightness(0.8);
+    }
+    
     /* ローディング表示 */
     .loading-overlay {
       position: absolute;
@@ -515,7 +524,11 @@
       let previousHoveredMunicipality = null;
       let isLoadingMunicipalities = false;
       
+      let isRendering = false;
       selector.on('stateChanged', (state) => {
+        // レンダリング中の場合はスキップ（無限ループ防止）
+        if (isRendering) return;
+        
         const prefectureChanged = previousSelectedPrefecture !== state.selectedPrefecture;
         const hoveredPrefectureChanged = previousHoveredPrefecture !== state.hoveredPrefecture;
         const hoveredMunicipalityChanged = previousHoveredMunicipality !== state.hoveredMunicipality;
@@ -538,8 +551,21 @@
         }
         
         // 市区町村データ読み込み中でなければ再レンダリング
-        if (!isLoadingMunicipalities && (prefectureChanged || hoveredPrefectureChanged || hoveredMunicipalityChanged)) {
-          render(state, shouldUpdateViewBox);
+        if (!isLoadingMunicipalities) {
+          // 都道府県が変更された場合は必ずレンダリング
+          if (prefectureChanged) {
+            needsFullRender = true;
+            isRendering = true;
+            requestAnimationFrame(() => {
+              render(state, shouldUpdateViewBox);
+              isRendering = false;
+            });
+          } 
+          // ホバーのみの変更の場合はスキップ（CSSで処理）
+          else if (hoveredPrefectureChanged || hoveredMunicipalityChanged) {
+            // レンダリングは不要（CSSとdata属性で処理される）
+            debug(`ホバー変更のみのため、再レンダリングをスキップ`);
+          }
         }
         
         previousSelectedPrefecture = state.selectedPrefecture;
@@ -571,6 +597,7 @@
           ? '<p>都道府県をクリックして選択してください。<br><small>（市区町村データは選択時に読み込まれます）</small></p>'
           : '<p>都道府県をクリックして選択してください。</p>';
         selectionInfo.innerHTML = loadingMessage;
+        needsFullRender = true;
         render(selector.getState());
       } catch (error) {
         debug(`エラー: ${error.message}`);
@@ -726,8 +753,82 @@
       zoom(0.87);
     });
     
+    // SVGのイベントデリゲーション設定（一度だけ）
+    let currentHoveredPrefecture = null;
+    let currentHoveredMunicipality = null;
+    
+    svg.addEventListener('mouseover', (e) => {
+      const target = e.target;
+      if (target.classList.contains('prefecture-path')) {
+        const code = target.getAttribute('data-code');
+        if (code && !selector.getState().selectedPrefecture) {
+          // 前のホバー状態をクリア
+          if (currentHoveredPrefecture && currentHoveredPrefecture !== target) {
+            currentHoveredPrefecture.removeAttribute('data-hovered');
+          }
+          target.setAttribute('data-hovered', 'true');
+          currentHoveredPrefecture = target;
+          selector.hoverPrefecture(code);
+        }
+      } else if (target.classList.contains('municipality-path')) {
+        const code = target.getAttribute('data-code');
+        if (code) {
+          // 前のホバー状態をクリア
+          if (currentHoveredMunicipality && currentHoveredMunicipality !== target) {
+            currentHoveredMunicipality.removeAttribute('data-hovered');
+          }
+          target.setAttribute('data-hovered', 'true');
+          currentHoveredMunicipality = target;
+          selector.hoverMunicipality(code);
+        }
+      }
+    });
+    
+    svg.addEventListener('mouseout', (e) => {
+      const target = e.target;
+      if (target.classList.contains('prefecture-path')) {
+        target.removeAttribute('data-hovered');
+        if (currentHoveredPrefecture === target) {
+          currentHoveredPrefecture = null;
+          selector.hoverPrefecture(null);
+        }
+      } else if (target.classList.contains('municipality-path')) {
+        target.removeAttribute('data-hovered');
+        if (currentHoveredMunicipality === target) {
+          currentHoveredMunicipality = null;
+          selector.hoverMunicipality(null);
+        }
+      }
+    });
+    
+    svg.addEventListener('click', async (e) => {
+      if (hasMoved) return;
+      const target = e.target;
+      if (target.classList.contains('prefecture-path')) {
+        const code = target.getAttribute('data-code');
+        if (code) {
+          e.stopPropagation();
+          debug(`都道府県クリック: ${target.getAttribute('data-name')}`);
+          try {
+            await selector.selectPrefecture(code);
+          } catch (error) {
+            console.error('都道府県選択エラー:', error);
+            debug(`エラー: ${error.message}`);
+          }
+        }
+      } else if (target.classList.contains('municipality-path')) {
+        const code = target.getAttribute('data-code');
+        if (code) {
+          e.stopPropagation();
+          selector.selectMunicipality(code);
+        }
+      }
+    });
+    
     // レンダリング関数
     let renderCount = 0;
+    let needsFullRender = true; // 初回は完全レンダリング
+    
     function render(state, updateViewBoxFlag = true) {
       if (!selector) return;
       renderCount++;
@@ -751,6 +852,14 @@
       } else {
         toggleIslandsButton.style.display = 'none';
       }
+      
+      // 完全レンダリングが不要な場合はスキップ
+      if (!needsFullRender) {
+        debug(`[RENDER #${renderCount}] 完全レンダリングが不要のため、スキップ`);
+        return;
+      }
+      
+      needsFullRender = false;
       
       while (svg.firstChild) {
         svg.removeChild(svg.firstChild);
@@ -790,28 +899,14 @@
           path.setAttribute('stroke', selector.getPrefectureStrokeColor(prefecture));
           path.setAttribute('style', `cursor: ${isSelectable ? 'pointer' : 'not-allowed'};`);
           path.setAttribute('stroke-width', theme.strokeWidth.toString());
+          path.setAttribute('data-code', prefecture.code);
+          path.setAttribute('data-name', prefecture.name);
           path.classList.add('prefecture-path');
           
-          path.addEventListener('click', async (e) => {
-            if (hasMoved) return;
-            e.stopPropagation();
-            debug(`都道府県クリック: ${prefecture.name}`);
-            try {
-              await selector.selectPrefecture(prefecture.code);
-            } catch (error) {
-              console.error('都道府県選択エラー:', error);
-              debug(`エラー: ${error.message}`);
-            }
-          });
-          
-          path.addEventListener('mouseenter', () => {
-            if (state.selectedPrefecture) return;
-            selector.hoverPrefecture(prefecture.code);
-          });
-          
-          path.addEventListener('mouseleave', () => {
-            selector.hoverPrefecture(null);
-          });
+          // ホバー状態の場合
+          if (state.hoveredPrefecture?.code === prefecture.code) {
+            path.setAttribute('data-hovered', 'true');
+          }
           
           const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
           title.textContent = prefecture.name;
@@ -862,21 +957,14 @@
           path.setAttribute('stroke', theme.municipalityStroke);
           path.setAttribute('stroke-width', theme.strokeWidth.toString());
           path.setAttribute('style', 'cursor: pointer;');
+          path.setAttribute('data-code', municipality.code);
+          path.setAttribute('data-name', municipality.name);
           path.classList.add('municipality-path');
           
-          path.addEventListener('click', (e) => {
-            if (hasMoved) return;
-            e.stopPropagation();
-            selector.selectMunicipality(municipality.code);
-          });
-          
-          path.addEventListener('mouseenter', () => {
-            selector.hoverMunicipality(municipality.code);
-          });
-          
-          path.addEventListener('mouseleave', () => {
-            selector.hoverMunicipality(null);
-          });
+          // ホバー状態の場合
+          if (state.hoveredMunicipality?.code === municipality.code) {
+            path.setAttribute('data-hovered', 'true');
+          }
           
           const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
           title.textContent = municipality.name;
@@ -914,12 +1002,14 @@
     // イベントハンドラー
     backButton.addEventListener('click', () => {
       if (selector) {
+        needsFullRender = true;
         selector.resetView();
       }
     });
     
     toggleIslandsButton.addEventListener('click', () => {
       if (selector) {
+        needsFullRender = true;
         selector.toggleTokyoIslands();
       }
     });
@@ -937,6 +1027,7 @@
           }
           debug(`テーマを変更: ${themeName}`);
           // 再レンダリング
+          needsFullRender = true;
           render(selector.getState());
         } catch (error) {
           console.error('テーマ変更エラー:', error);
@@ -970,6 +1061,7 @@
           selector.setDeformMode(mode, gridSize);
           debug(`ディフォルメモードを変更: ${mode}, グリッドサイズ: ${gridSize}`);
           // 再レンダリング
+          needsFullRender = true;
           render(selector.getState());
         } catch (error) {
           console.error('ディフォルメ変更エラー:', error);
@@ -984,6 +1076,7 @@
       if (selector && deformSelect.value !== 'none') {
         selector.setDeformMode(deformSelect.value, gridSize);
         // 再レンダリング
+        needsFullRender = true;
         render(selector.getState());
       }
     });
