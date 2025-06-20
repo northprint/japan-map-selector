@@ -512,6 +512,7 @@
               if (municipalities.length > 0) {
                 debug(`最初の市区町村: ${municipalities[0].name}`);
               }
+              needsFullRender = true; // 市区町村データ読み込み後は必ず再レンダリング
               render(state, true); // 第2引数をtrueにしてビューボックスを強制更新
             }
           }, 100); // 100ms待つ
@@ -761,17 +762,21 @@
       const target = e.target;
       if (target.classList.contains('prefecture-path')) {
         const code = target.getAttribute('data-code');
-        if (code && !selector.getState().selectedPrefecture) {
+        const name = target.getAttribute('data-name');
+        if (code && !previousSelectedPrefecture) {
           // 前のホバー状態をクリア
           if (currentHoveredPrefecture && currentHoveredPrefecture !== target) {
             currentHoveredPrefecture.removeAttribute('data-hovered');
           }
           target.setAttribute('data-hovered', 'true');
           currentHoveredPrefecture = target;
-          selector.hoverPrefecture(code);
+          // ホバー情報を直接更新（stateChangedイベントを避ける）
+          hoverInfo.style.display = 'block';
+          hoverInfo.textContent = name;
         }
       } else if (target.classList.contains('municipality-path')) {
         const code = target.getAttribute('data-code');
+        const name = target.getAttribute('data-name');
         if (code) {
           // 前のホバー状態をクリア
           if (currentHoveredMunicipality && currentHoveredMunicipality !== target) {
@@ -779,7 +784,9 @@
           }
           target.setAttribute('data-hovered', 'true');
           currentHoveredMunicipality = target;
-          selector.hoverMunicipality(code);
+          // ホバー情報を直接更新（stateChangedイベントを避ける）
+          hoverInfo.style.display = 'block';
+          hoverInfo.textContent = name;
         }
       }
     });
@@ -790,13 +797,13 @@
         target.removeAttribute('data-hovered');
         if (currentHoveredPrefecture === target) {
           currentHoveredPrefecture = null;
-          selector.hoverPrefecture(null);
+          hoverInfo.style.display = 'none';
         }
       } else if (target.classList.contains('municipality-path')) {
         target.removeAttribute('data-hovered');
         if (currentHoveredMunicipality === target) {
           currentHoveredMunicipality = null;
-          selector.hoverMunicipality(null);
+          hoverInfo.style.display = 'none';
         }
       }
     });
@@ -892,9 +899,7 @@
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', selector.getPrefecturePath(prefecture));
           const isSelectable = selector.isPrefectureSelectable(prefecture.code);
-          const fillColor = state.hoveredPrefecture?.code === prefecture.code 
-            ? theme.prefectureHoverFill 
-            : selector.getPrefectureFillColor(prefecture);
+          const fillColor = selector.getPrefectureFillColor(prefecture);
           path.setAttribute('fill', fillColor);
           path.setAttribute('stroke', selector.getPrefectureStrokeColor(prefecture));
           path.setAttribute('style', `cursor: ${isSelectable ? 'pointer' : 'not-allowed'};`);
@@ -902,11 +907,6 @@
           path.setAttribute('data-code', prefecture.code);
           path.setAttribute('data-name', prefecture.name);
           path.classList.add('prefecture-path');
-          
-          // ホバー状態の場合
-          if (state.hoveredPrefecture?.code === prefecture.code) {
-            path.setAttribute('data-hovered', 'true');
-          }
           
           const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
           title.textContent = prefecture.name;
@@ -949,22 +949,13 @@
         municipalities.forEach(municipality => {
           const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           path.setAttribute('d', selector.getMunicipalityPath(municipality));
-          path.setAttribute('fill', 
-            state.hoveredMunicipality?.code === municipality.code 
-              ? selector.getMunicipalityHoverFillColor(municipality)
-              : selector.getMunicipalityFillColor(municipality)
-          );
+          path.setAttribute('fill', selector.getMunicipalityFillColor(municipality));
           path.setAttribute('stroke', theme.municipalityStroke);
           path.setAttribute('stroke-width', theme.strokeWidth.toString());
           path.setAttribute('style', 'cursor: pointer;');
           path.setAttribute('data-code', municipality.code);
           path.setAttribute('data-name', municipality.name);
           path.classList.add('municipality-path');
-          
-          // ホバー状態の場合
-          if (state.hoveredMunicipality?.code === municipality.code) {
-            path.setAttribute('data-hovered', 'true');
-          }
           
           const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
           title.textContent = municipality.name;
@@ -986,17 +977,7 @@
         }
       }
       
-      // ホバー情報の更新
-      if (state.hoveredPrefecture || state.hoveredMunicipality) {
-        hoverInfo.style.display = 'block';
-        if (state.hoveredPrefecture && !state.selectedPrefecture) {
-          hoverInfo.textContent = state.hoveredPrefecture.name;
-        } else if (state.hoveredMunicipality) {
-          hoverInfo.textContent = state.hoveredMunicipality.name;
-        }
-      } else {
-        hoverInfo.style.display = 'none';
-      }
+      // ホバー情報は直接イベントハンドラーで更新されるため、ここでは処理しない
     }
     
     // イベントハンドラー
