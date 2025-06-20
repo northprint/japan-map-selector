@@ -523,6 +523,7 @@
       let previousSelectedPrefecture = null;
       let previousHoveredPrefecture = null;
       let previousHoveredMunicipality = null;
+      let previousShowTokyoIslands = false;
       let isLoadingMunicipalities = false;
       
       let isRendering = false;
@@ -533,8 +534,9 @@
         const prefectureChanged = previousSelectedPrefecture !== state.selectedPrefecture;
         const hoveredPrefectureChanged = previousHoveredPrefecture !== state.hoveredPrefecture;
         const hoveredMunicipalityChanged = previousHoveredMunicipality !== state.hoveredMunicipality;
+        const showTokyoIslandsChanged = previousShowTokyoIslands !== state.showTokyoIslands;
         
-        const shouldUpdateViewBox = prefectureChanged;
+        const shouldUpdateViewBox = prefectureChanged || showTokyoIslandsChanged;
         
         // 都道府県が変更された場合、市区町村データを確認
         if (prefectureChanged && state.selectedPrefecture) {
@@ -553,8 +555,8 @@
         
         // 市区町村データ読み込み中でなければ再レンダリング
         if (!isLoadingMunicipalities) {
-          // 都道府県が変更された場合は必ずレンダリング
-          if (prefectureChanged) {
+          // 都道府県が変更された場合、または離島表示が切り替わった場合は必ずレンダリング
+          if (prefectureChanged || showTokyoIslandsChanged) {
             needsFullRender = true;
             isRendering = true;
             requestAnimationFrame(() => {
@@ -572,6 +574,7 @@
         previousSelectedPrefecture = state.selectedPrefecture;
         previousHoveredPrefecture = state.hoveredPrefecture;
         previousHoveredMunicipality = state.hoveredMunicipality;
+        previousShowTokyoIslands = state.showTokyoIslands;
       });
       
       // データの読み込み
