@@ -256,16 +256,6 @@
         </select>
       </div>
       
-      <div class="control-group">
-        <label>データ精度</label>
-        <select id="simplification-select">
-          <option value="original">オリジナル (100%)</option>
-          <option value="high">高精度 (18%)</option>
-          <option value="medium">中精度 (9%)</option>
-          <option value="low" selected>低精度 (8%)</option>
-          <option value="ultra-low">超低精度 (4%)</option>
-        </select>
-      </div>
       
       <div class="control-group">
         <label>ディフォルメ</label>
@@ -394,7 +384,6 @@
     let selector = null;
     let currentTheme = 'default';
     let currentSelectablePrefectures = undefined;
-    let currentSimplificationLevel = 'medium'; // デフォルトを中精度に設定（npmパッケージに含まれる）
     
     // 都道府県別データロードの有効/無効（デフォルトで有効）
     let enableDynamicLoading = true;
@@ -424,7 +413,6 @@
         selectablePrefectures: currentSelectablePrefectures,
         disabledPrefectureFill: '#e0e0e0',
         disabledPrefectureStroke: '#aaaaaa',
-        simplificationLevel: currentSimplificationLevel,
         enableDynamicLoading: enableDynamicLoading,
         dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.1/src/data',
         onPrefectureSelect: (prefecture) => {
@@ -468,15 +456,8 @@
       // データの読み込み
       try {
         const cdnBase = 'https://unpkg.com/japan-map-selector@0.2.1/src/data/simplified';
-        let prefectureFile = `${cdnBase}/prefectures-medium.geojson`;
-        let municipalityFile = enableDynamicLoading ? '' : `${cdnBase}/municipalities-medium.geojson`;
-        
-        if (currentSimplificationLevel !== 'original') {
-          prefectureFile = `${cdnBase}/prefectures-${currentSimplificationLevel}.geojson`;
-          if (!enableDynamicLoading) {
-            municipalityFile = `${cdnBase}/municipalities-${currentSimplificationLevel}.geojson`;
-          }
-        }
+        const prefectureFile = `${cdnBase}/prefectures-medium.geojson`;
+        const municipalityFile = enableDynamicLoading ? '' : `${cdnBase}/municipalities-medium.geojson`;
         
         debug(`データファイル: ${prefectureFile}, ${municipalityFile || '動的ローディング有効'}`);
         
@@ -883,12 +864,6 @@
       }
     });
     
-    const simplificationSelect = document.getElementById('simplification-select');
-    simplificationSelect.addEventListener('change', async (e) => {
-      const level = e.target.value;
-      currentSimplificationLevel = level;
-      await initializeSelector();
-    });
     
     // 初期化を実行
     initializeSelector();
