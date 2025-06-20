@@ -821,10 +821,17 @@
       currentTheme = themeName;
       
       if (selector) {
-        if (themeName === 'custom') {
-          selector.setTheme(customTheme);
-        } else {
-          selector.setTheme(themeName);
+        try {
+          if (themeName === 'custom') {
+            selector.setTheme(customTheme);
+          } else {
+            selector.setTheme(themeName);
+          }
+          debug(`テーマを変更: ${themeName}`);
+          // 再レンダリング
+          render(selector.getState());
+        } catch (error) {
+          console.error('テーマ変更エラー:', error);
         }
       }
     });
@@ -851,7 +858,14 @@
       const gridSize = parseFloat(gridSizeSlider.value);
       
       if (selector) {
-        selector.setDeformMode(mode, gridSize);
+        try {
+          selector.setDeformMode(mode, gridSize);
+          debug(`ディフォルメモードを変更: ${mode}, グリッドサイズ: ${gridSize}`);
+          // 再レンダリング
+          render(selector.getState());
+        } catch (error) {
+          console.error('ディフォルメ変更エラー:', error);
+        }
       }
     });
     
@@ -861,6 +875,8 @@
       
       if (selector && deformSelect.value !== 'none') {
         selector.setDeformMode(deformSelect.value, gridSize);
+        // 再レンダリング
+        render(selector.getState());
       }
     });
     
