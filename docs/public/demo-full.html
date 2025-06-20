@@ -440,7 +440,7 @@
           // デバッグ用：読み込まれたデータを確認
           if (selector) {
             const state = selector.getState();
-            const municipalities = selector.getMunicipalities();
+            const municipalities = selector.getSelectedMunicipalities();
             debug(`読み込まれた市区町村数: ${municipalities.length}`);
             if (municipalities.length > 0) {
               debug(`最初の市区町村: ${municipalities[0].name} (都道府県コード: ${municipalities[0].prefectureCode})`);
