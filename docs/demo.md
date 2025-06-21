@@ -6,7 +6,7 @@
     border: 1px solid #e2e2e3;
     border-radius: 8px;
     overflow: hidden;
-    height: 850px;
+    height: 1100px;
   }
   .demo-container iframe {
     width: 100%;
