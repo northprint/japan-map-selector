@@ -688,14 +688,32 @@ export class JapanMapSelector {
           });
           
           // パディングを追加
-          const padding = 0.5;
+          const padding = 1.0; // パディングを増やしてより余裕を持たせる
           const islandBounds: [[number, number], [number, number]] = [
             [minLng - padding, minLat - padding], 
             [maxLng + padding, maxLat + padding]
           ];
-          const { viewBox, projection } = calculateViewBox(islandBounds);
-          this.state.viewBox = viewBox;
-          this.currentProjection = projection;
+          
+          // 離島用の特別な投影設定
+          const width = (maxLng + padding) - (minLng - padding);
+          const height = (maxLat + padding) - (minLat - padding);
+          const centerLng = (minLng + maxLng) / 2;
+          const centerLat = (minLat + maxLat) / 2;
+          
+          // スケールを計算（画面中央に配置）
+          const scale = Math.min(
+            (this.props.width! - 100) / width,
+            (this.props.height! - 100) / height
+          ) * 0.8; // 少し小さめにして見やすくする
+          
+          this.currentProjection = {
+            scale,
+            translateX: this.props.width! / 2,
+            translateY: this.props.height! / 2,
+            center: [centerLng, centerLat]
+          };
+          
+          this.state.viewBox = `0 0 ${this.props.width} ${this.props.height}`;
         }
       } else {
         // 本土エリアに戻す
