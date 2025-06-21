@@ -385,7 +385,7 @@
 
   <script type="module">
     // npmパッケージをCDN経由で読み込む
-    const { JapanMapSelector } = await import('https://unpkg.com/japan-map-selector@0.2.4/dist/index.es.js');
+    const { JapanMapSelector } = await import('https://unpkg.com/japan-map-selector@0.2.5/dist/index.es.js');
     
     // 要素の取得
     const svg = document.getElementById('map-svg');
@@ -475,7 +475,7 @@
         disabledPrefectureFill: '#e0e0e0',
         disabledPrefectureStroke: '#aaaaaa',
         enableDynamicLoading: enableDynamicLoading,
-        dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.4/src/data',
+        dynamicDataBaseUrl: 'https://unpkg.com/japan-map-selector@0.2.5/src/data',
         simplificationLevel: 'medium', // 動的ローディングの精度レベル
         onPrefectureSelect: (prefecture) => {
           debug(`onPrefectureSelect: ${prefecture.name}`);
@@ -494,7 +494,7 @@
           // 読み込み中フラグを設定
           isLoadingMunicipalities = true;
           // デバッグ用：読み込むURLを確認
-          const expectedUrl = `https://unpkg.com/japan-map-selector@0.2.4/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
+          const expectedUrl = `https://unpkg.com/japan-map-selector@0.2.5/src/data/prefectures/${prefecture.code}/municipalities-medium.geojson`;
           debug(`予想されるURL: ${expectedUrl}`);
         },
         onMunicipalityLoadEnd: (prefecture) => {
@@ -579,7 +579,7 @@
       
       // データの読み込み
       try {
-        const cdnBase = 'https://unpkg.com/japan-map-selector@0.2.4/src/data/simplified';
+        const cdnBase = 'https://unpkg.com/japan-map-selector@0.2.5/src/data/simplified';
         const prefectureFile = `${cdnBase}/prefectures-medium.geojson`;
         const municipalityFile = enableDynamicLoading ? '' : `${cdnBase}/municipalities-medium.geojson`;
         
