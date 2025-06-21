@@ -57,10 +57,10 @@ const map = new JapanMapSelector({
 });
 
 // 地理データを読み込む（デフォルトは中精度）
-// パッケージに含まれるデータを使用
+// CDNから読み込む（推奨）
 await map.initialize(
-  './node_modules/japan-map-selector/src/data/simplified/prefectures-medium.geojson',
-  './node_modules/japan-map-selector/src/data/simplified/municipalities-medium.geojson'
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/prefectures-medium.geojson',
+  'https://unpkg.com/japan-map-selector@latest/src/data/simplified/municipalities-medium.geojson'
 );
 
 // コンテナに地図を描画
@@ -158,17 +158,7 @@ export default App;
 
 このパッケージには、中精度の地図データがデフォルトで含まれています。
 
-### パッケージに含まれるデータの使用
-
-```javascript
-// Webpack、Viteなどのバンドラーを使用する場合
-import prefectureData from 'japan-map-selector/src/data/simplified/prefectures-medium.geojson';
-import municipalityData from 'japan-map-selector/src/data/simplified/municipalities-medium.geojson';
-
-await map.initialize(prefectureData, municipalityData);
-```
-
-### CDNから直接読み込む場合
+### データの読み込み方法
 
 ```javascript
 // unpkgから読み込む（キャッシュが効くため2回目以降は高速）

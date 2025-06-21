@@ -412,7 +412,6 @@
     
     // デバッグ関数
     function debug(msg) {
-      console.log(`[DEBUG] ${msg}`); // 常にコンソールに出力
       if (!debugMode) return;
       const time = new Date().toLocaleTimeString();
       debugInfo.innerHTML += `<br>${time}: ${msg}`;
