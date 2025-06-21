@@ -319,14 +319,15 @@ export class JapanMapSelector {
     }
     
     // 動的読み込みが有効な場合は、現在の municipalities 配列を使用
+    let allMunicipalities: Municipality[];
     if (this.isDynamicLoadingEnabled) {
-      return this.municipalities;
+      allMunicipalities = this.municipalities;
+    } else {
+      allMunicipalities = filterMunicipalitiesByPrefecture(
+        this.municipalities,
+        this.state.selectedPrefecture.code
+      );
     }
-    
-    const allMunicipalities = filterMunicipalitiesByPrefecture(
-      this.municipalities,
-      this.state.selectedPrefecture.code
-    );
     
     // 東京都の場合、離島表示の設定に応じてフィルタリング
     if (this.state.selectedPrefecture.code === '13') {
