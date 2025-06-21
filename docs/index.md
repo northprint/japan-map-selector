@@ -58,11 +58,6 @@ map.on('prefectureSelected', (prefecture) => {
 
 ## 特徴
 
-### 📍 正確な地図データ
-- [smartnews-smri/japan-topography](https://github.com/smartnews-smri/japan-topography)の簡略化された地理データを使用
-- 都道府県境界と市区町村境界を正確に表現
-- 実用的で見やすい地図表示
-
 ### 🎨 豊富なテーマ
 - **デフォルト**: シンプルでクリーンなデザイン
 - **ダーク**: ダークモード対応
@@ -73,7 +68,6 @@ map.on('prefectureSelected', (prefecture) => {
 ### 🚀 パフォーマンス
 - 4段階の簡略化レベル（original, high, medium, low, ultra-low）
 - 必要に応じて詳細度を調整可能
-- 大規模なWebアプリケーションでも高速に動作
 
 ## データの出典
 
@@ -85,5 +79,5 @@ map.on('prefectureSelected', (prefecture) => {
 
 ## サポート
 
-- [GitHub Issues](https://github.com/yourusername/japan-map-selector/issues)で問題を報告
-- [ディスカッション](https://github.com/yourusername/japan-map-selector/discussions)で質問や提案
+- [GitHub Issues](https://github.com/northprint/japan-map-selector/issues)で問題を報告
+- [ディスカッション](https://github.com/northprint/japan-map-selector/discussions)で質問や提案
